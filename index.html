@@ -71,7 +71,7 @@ body::after {
   background:
     radial-gradient(ellipse at center, transparent 50%, rgba(38, 20, 4, .5) 100%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .8 0 0 0 0 .65 0 0 0 0 .4 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode: soft-light;
+  opacity: .55;
 }
 @keyframes flicker {
   0%, 100% { opacity: 1; } 18% { opacity: .78; } 31% { opacity: .95; }
@@ -152,7 +152,7 @@ body::after {
   position: absolute; left: 0; top: 0;
   width: var(--bs, 46px); height: var(--bs, 46px);
   animation: flyA 38s linear infinite;
-  filter: drop-shadow(3px 9px 5px rgba(0, 0, 0, .45));
+  will-change: transform;
 }
 .bfly.b { --bs: 32px; animation: flyB 47s linear infinite; animation-delay: -9s; }
 .bfly.c { --bs: 38px; animation: flyC 55s linear infinite; animation-delay: -30s; }
@@ -257,7 +257,12 @@ body::after {
 
 .pane, .flap { position: absolute; top: 0; left: 0; width: var(--pw); height: var(--ph); }
 .pane { cursor: pointer; }
-.flap { z-index: 5; transform-style: preserve-3d; transform-origin: left center; pointer-events: none; }
+.flap { z-index: 5; transform-origin: left center; pointer-events: none; will-change: transform, opacity; backface-visibility: hidden; }
+/* shading on the turning page, and the shadow it throws on the page beneath */
+.flap .shade { position: absolute; inset: 0; opacity: 0; will-change: opacity;
+  background: linear-gradient(90deg, rgba(20, 10, 2, .15), rgba(20, 10, 2, .75)); }
+.cast { position: absolute; inset: 0; z-index: 4; opacity: 0; pointer-events: none; will-change: opacity;
+  background: linear-gradient(90deg, rgba(20, 10, 2, .55), rgba(20, 10, 2, .12) 70%, transparent); }
 
 /* ---------- a sheet of old paper ---------- */
 .sheet {
@@ -428,6 +433,7 @@ body::after {
     <div class="ribbon"></div>
     <div class="board"></div>
     <div class="pane" id="page"></div>
+    <div class="cast" id="cast"></div>
     <div class="flap" id="flap" hidden></div>
   </div>
 </main>
@@ -865,22 +871,31 @@ function flipTo(t) {
   busy = true;
   const forward = t > pos;
   // turning forward lifts the current page away; turning back lays the earlier page down again
-  flap.innerHTML = sheet(forward ? pos : t);
+  flap.innerHTML = sheet(forward ? pos : t) + '<div class="shade"></div>';
+  flap.style.opacity = forward ? '1' : '0';
   if (forward) { page.innerHTML = sheet(t); book.classList.remove('closed'); }
   flap.hidden = false;
-  const lifted = { transform: 'rotateY(-96deg)', filter: 'brightness(.55)' };
-  const flat = { transform: 'rotateY(0deg)', filter: 'brightness(1)' };
-  const anim = flap.animate(forward ? [flat, lifted] : [lifted, flat],
-    { duration: 1800, easing: forward ? 'cubic-bezier(.4,0,.75,.65)' : 'cubic-bezier(.25,.35,.6,1)', fill: 'forwards' });
-  const done = () => {
-    pos = t;
-    render();
-    flap.hidden = true;
-    flap.innerHTML = '';
-    anim.cancel();
-    busy = false;
-  };
-  anim.finished.then(done, done);
+  const shade = flap.lastChild, cast = $('cast');
+  const opts = { duration: 1700, easing: 'cubic-bezier(.42,0,.58,1)', fill: 'forwards',
+    direction: forward ? 'normal' : 'reverse' };
+  // let the new sheets paint first, so the motion itself starts without a hitch
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const anim = flap.animate([
+      { transform: 'rotateY(0deg)', opacity: 1 },
+      { transform: 'rotateY(-62deg)', opacity: 1, offset: .6 },
+      { transform: 'rotateY(-104deg)', opacity: 0 }], opts);
+    const a2 = shade.animate([{ opacity: 0 }, { opacity: 1 }], opts);
+    const a3 = cast.animate([{ opacity: 0 }, { opacity: .8, offset: .35 }, { opacity: 0 }], opts);
+    const done = () => {
+      pos = t;
+      render();
+      flap.hidden = true;
+      flap.innerHTML = '';
+      [anim, a2, a3].forEach(a => a.cancel());
+      busy = false;
+    };
+    anim.finished.then(done, done);
+  }));
 }
 
 const step = d => flipTo(pos + d);
