@@ -406,6 +406,8 @@ body::after {
 }
 .controls button:hover:not(:disabled) { background: rgba(210, 171, 87, .18); }
 .controls button:disabled { opacity: .3; cursor: default; }
+.controls #sound { font-size: 18px; margin-left: 6px; }
+.controls #sound[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
 .controls label { display: flex; align-items: center; gap: 8px; }
 .controls input {
   font: inherit; font-style: normal; text-align: center;
@@ -446,7 +448,9 @@ body::after {
     of 365
   </label>
   <button type="button" id="next" aria-label="Next page" hidden>&#8250;</button>
+  <button type="button" id="sound" aria-label="Turn music off" aria-pressed="true" hidden>&#9834;</button>
 </nav>
+<audio id="music" src="music.mp3" loop preload="auto"></audio>
 
 <script>
 /* ============================================================
@@ -830,6 +834,34 @@ const $ = id => document.getElementById(id);
 const book = $('book'), page = $('page'), flap = $('flap');
 const prevBtn = $('prev'), nextBtn = $('next'), jump = $('jump'), pageNo = $('pageNo'), hint = $('hint');
 const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+/* music: starts softly when the book is opened, stops when it is closed */
+const music = $('music'), soundBtn = $('sound');
+const VOLUME = 0.4;          // 0 = silent, 1 = full
+let musicOn = true, fadeTimer = null;
+function fadeMusic(target, then) {
+  clearInterval(fadeTimer);
+  fadeTimer = setInterval(() => {
+    const v = music.volume + Math.sign(target - music.volume) * 0.02;
+    if (Math.abs(target - v) < 0.02) {
+      music.volume = target; clearInterval(fadeTimer); if (then) then();
+    } else music.volume = Math.max(0, Math.min(1, v));
+  }, 60);
+}
+function playMusic() {
+  if (!musicOn) return;
+  if (music.paused) music.volume = 0;
+  const started = music.play();
+  if (started) started.catch(() => {});
+  fadeMusic(VOLUME);
+}
+const stopMusic = () => fadeMusic(0, () => music.pause());
+soundBtn.addEventListener('click', () => {
+  musicOn = !musicOn;
+  soundBtn.setAttribute('aria-pressed', String(musicOn));
+  soundBtn.setAttribute('aria-label', musicOn ? 'Turn music off' : 'Turn music on');
+  if (musicOn) playMusic(); else stopMusic();
+});
 let pos = 0;        // which sheet is showing; 0 = the closed cover
 let busy = false;
 
@@ -858,7 +890,7 @@ function render() {
   book.classList.toggle('closed', !open);
   page.innerHTML = sheet(pos);
   hint.hidden = open;
-  prevBtn.hidden = jump.hidden = nextBtn.hidden = !open;
+  prevBtn.hidden = jump.hidden = nextBtn.hidden = soundBtn.hidden = !open;
   nextBtn.disabled = pos >= LAST;
   if (document.activeElement !== pageNo) pageNo.value = pos >= 2 && pos <= TOTAL + 1 ? pos - 1 : '';
 }
@@ -866,6 +898,7 @@ function render() {
 function flipTo(t) {
   t = Math.max(0, Math.min(LAST, t));
   if (busy || t === pos) return;
+  if (pos === 0) playMusic(); else if (t === 0) stopMusic();
   if (calm.matches || !flap.animate) { pos = t; render(); return; }
 
   busy = true;
