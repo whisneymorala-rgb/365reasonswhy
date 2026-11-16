@@ -406,7 +406,19 @@ body::after {
 }
 .controls button:hover:not(:disabled) { background: rgba(210, 171, 87, .18); }
 .controls button:disabled { opacity: .3; cursor: default; }
-.controls #sound { font-size: 18px; margin-left: 6px; }
+.controls #sound { font-size: 18px; margin-left: 6px; position: relative; }
+/* the song title appears when the pointer rests on the music button */
+.controls #sound::after {
+  content: attr(data-tip);
+  position: absolute; right: 0; bottom: calc(100% + 10px);
+  padding: 7px 12px; white-space: nowrap;
+  font-family: var(--font-print); font-style: italic; font-size: 15px; line-height: 1.2;
+  color: var(--ui); background: rgba(20, 11, 5, .94);
+  border: 1px solid var(--gilt-dim); border-radius: 4px;
+  opacity: 0; transform: translateY(4px); pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.controls #sound:hover::after, .controls #sound:focus-visible::after { opacity: 1; transform: none; }
 .controls #sound[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
 .controls label { display: flex; align-items: center; gap: 8px; }
 .controls input {
@@ -448,7 +460,7 @@ body::after {
     of 365
   </label>
   <button type="button" id="next" aria-label="Next page" hidden>&#8250;</button>
-  <button type="button" id="sound" aria-label="Turn music off" aria-pressed="true" hidden>&#9834;</button>
+  <button type="button" id="sound" aria-label="Turn music off" aria-pressed="true" data-tip="It Might Be You by Stephen Bishop, playing in the background" hidden>&#9834;</button>
 </nav>
 <audio id="music" src="music.mp3" loop preload="auto"></audio>
 
@@ -860,6 +872,7 @@ soundBtn.addEventListener('click', () => {
   musicOn = !musicOn;
   soundBtn.setAttribute('aria-pressed', String(musicOn));
   soundBtn.setAttribute('aria-label', musicOn ? 'Turn music off' : 'Turn music on');
+  soundBtn.dataset.tip = 'It Might Be You by Stephen Bishop, ' + (musicOn ? 'playing in the background' : 'paused');
   if (musicOn) playMusic(); else stopMusic();
 });
 let pos = 0;        // which sheet is showing; 0 = the closed cover
