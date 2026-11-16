@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>365 Reasons Why</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Pinyon+Script&family=Tangerine:wght@400;700&display=swap">
+<style>
+/* Layout: one old leather-bound book lying on a dark wooden table; everything else stays quiet. */
+:root {
+  color-scheme: dark;
+  --table: #21140c;
+  --table-line: #120a05;
+  --leather: #4a2216;
+  --leather-deep: #2b120b;
+  --gilt: #d2ab57;
+  --gilt-dim: #9a7a35;
+  --paper: #e7d5ab;
+  --paper-shade: #cfb680;
+  --paper-burn: rgba(96, 58, 20, .5);
+  --ink: #36200f;
+  --ink-faint: rgba(54, 32, 15, .55);
+  --ui: #d9c69a;
+  --ui-dim: rgba(217, 198, 154, .6);
+
+  --font-title: "Pinyon Script", "Snell Roundhand", "Apple Chancery", cursive;
+  --font-hand: "Tangerine", "Apple Chancery", "Snell Roundhand", "Lucida Calligraphy", cursive;
+  --font-print: "IM Fell English", "Hoefler Text", Garamond, Georgia, serif;
+
+  --pw: clamp(150px, min(45vw, calc((100dvh - 190px) * .7)), 430px);
+  --ph: calc(var(--pw) / .7);
+}
+@media (max-width: 700px) {
+  :root { --pw: clamp(220px, min(86vw, calc((100dvh - 190px) * .7)), 420px); }
+}
+
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background-color: var(--table);
+  background-image:
+    radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, .7) 100%),
+    repeating-linear-gradient(0deg, transparent 0 138px, var(--table-line) 138px 141px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='282'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006 .35' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .33 0 0 0 0 .16 .9 0 0 0 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  color: var(--ui);
+  font-family: var(--font-print);
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* dried petals scattered on the table */
+.petals { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.petal {
+  position: absolute;
+  border-radius: 80% 20% 70% 30% / 60% 40% 60% 40%;
+  box-shadow: 1px 2px 3px rgba(0, 0, 0, .55);
+}
+.flower { position: absolute; width: 0; height: 0; }
+.flower .petal { left: 0; top: 0; transform-origin: 0 50%; }
+.flower i {
+  position: absolute; width: 7px; height: 7px; left: -3px; top: -3px;
+  border-radius: 50%; background: #3a2412;
+}
+
+.stage {
+  flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+
+.book {
+  position: relative;
+  width: calc(var(--pw) * 2);
+  height: var(--ph);
+  perspective: 2400px;
+  transition: transform .9s cubic-bezier(.45, .05, .3, 1);
+}
+.book.closed { transform: translateX(calc(var(--pw) * -.5)); }
+.book.single { width: var(--pw); }
+.book.single.closed { transform: none; }
+
+/* leather boards seen around the open pages */
+.board {
+  position: absolute; inset: -9px -13px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--leather-deep), var(--leather) 12%, var(--leather-deep) 50%, var(--leather) 88%, var(--leather-deep));
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .7), 0 6px 14px rgba(0, 0, 0, .6);
+  transition: opacity .7s ease;
+}
+.book.closed .board { opacity: 0; }
+/* the stacked edges of the page block */
+.board::before, .board::after {
+  content: ""; position: absolute; top: 9px; bottom: 9px; width: 9px;
+  background: repeating-linear-gradient(90deg, #d8c391 0 1px, #a98f5c 1px 2px);
+}
+.board::before { left: 4px; }
+.board::after { right: 4px; }
+
+.pane, .flap {
+  position: absolute; top: 0;
+  width: var(--pw); height: var(--ph);
+}
+.pane { cursor: pointer; }
+.pane.left { left: 0; }
+.pane.right { left: var(--pw); }
+.book.single .pane.left { display: none; }
+.book.single .pane.right { left: 0; }
+
+.flap { z-index: 5; transform-style: preserve-3d; pointer-events: none; }
+.flap .face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.flap .back { transform: rotateY(180deg); }
+
+/* ---------- a sheet of old paper ---------- */
+.sheet {
+  position: absolute; inset: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-size: calc(var(--pw) / 10);
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .25 0 0 0 0 .1 0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='700'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.011' numOctaves='3' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .3 0 0 0 0 .1 1.1 0 0 0 -.5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E"),
+    linear-gradient(160deg, var(--paper), var(--paper-shade));
+  background-size: 260px 260px, 100% 100%, 100% 100%;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 1.1em 1em 1em;
+  text-align: center;
+}
+/* burnt edges, plus the shadow that falls into the spine */
+.sheet::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 2.2em var(--paper-burn), inset 0 0 .5em rgba(70, 40, 10, .45);
+}
+.sheet.recto::after {
+  background: linear-gradient(90deg, rgba(40, 20, 5, .5), rgba(40, 20, 5, .12) 7%, transparent 16%);
+}
+.sheet.verso::after {
+  background: linear-gradient(270deg, rgba(40, 20, 5, .5), rgba(40, 20, 5, .12) 7%, transparent 16%);
+}
+.book.single .sheet.recto::after { background: none; }
+.sheet.recto { border-radius: 0 3px 3px 0; }
+.sheet.verso { border-radius: 3px 0 0 3px; }
+
+.sheet .no {
+  font-family: var(--font-print); font-style: italic;
+  font-size: .42em; letter-spacing: .08em; color: var(--ink-faint);
+}
+.sheet .body {
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  width: 100%;
+}
+.sheet .reason {
+  margin: 0;
+  font-family: var(--font-hand); font-weight: 700;
+  font-size: 1.18em; line-height: 1.12;
+  text-wrap: balance;
+  text-shadow: 0 0 1px rgba(54, 32, 15, .55);
+}
+.sheet .reason.long { font-size: 1.02em; }
+.orn {
+  display: flex; align-items: center; gap: .5em;
+  width: 42%; color: var(--ink-faint);
+}
+.orn::before, .orn::after { content: ""; flex: 1; height: 1px; background: currentColor; }
+.orn b { width: .2em; height: .2em; background: currentColor; transform: rotate(45deg); }
+.sheet.blank .orn { opacity: .5; }
+
+/* title page */
+.sheet.title h1 {
+  margin: 0 0 .5em;
+  font-family: var(--font-title); font-weight: 400;
+  font-size: 1.5em; line-height: 1.05;
+  text-shadow: 0 0 1px rgba(54, 32, 15, .5);
+}
+.sheet.title p {
+  margin: 0;
+  font-family: var(--font-hand); font-weight: 700;
+  font-size: 1.35em; line-height: 1.25;
+  text-shadow: 0 0 1px rgba(54, 32, 15, .5);
+}
+.sheet.title .orn { margin: 0 auto .6em; }
+
+/* ---------- the cover ---------- */
+.sheet.cover {
+  color: var(--gilt);
+  background-color: var(--leather);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 40% 35%, #5d2c1c, var(--leather) 55%, var(--leather-deep));
+  border-radius: 2px 6px 6px 2px;
+  padding: 0;
+  justify-content: center;
+  box-shadow: 2px 2px 0 #cbb489, 4px 4px 0 #a98f5c, 6px 6px 0 var(--leather-deep), 0 30px 60px rgba(0, 0, 0, .7);
+}
+.sheet.cover::after {
+  box-shadow: inset 0 0 3em rgba(0, 0, 0, .6);
+  background: linear-gradient(90deg, rgba(0, 0, 0, .55), rgba(255, 255, 255, .06) 5%, rgba(0, 0, 0, .25) 7%, transparent 11%);
+}
+.flap .sheet.cover { box-shadow: none; }
+.cover .frame {
+  position: absolute; inset: .7em .7em .7em 1.1em;
+  border: 2px solid var(--gilt-dim);
+  outline: 1px solid var(--gilt-dim); outline-offset: -.28em;
+  border-radius: 2px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .1em;
+}
+.cover .num {
+  font-family: var(--font-title); font-size: 3em; line-height: 1;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .7), 0 0 .3em rgba(210, 171, 87, .25);
+}
+.cover .words {
+  font-family: var(--font-title); font-size: 1.55em; line-height: 1.1;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .7);
+}
+.cover .orn { color: var(--gilt-dim); margin: .5em 0; }
+
+/* ---------- controls ---------- */
+.controls {
+  flex: none;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding-block: 10px 16px;
+  position: relative;
+  font-style: italic; color: var(--ui-dim);
+  min-height: 44px;
+}
+.controls button {
+  font: inherit; font-style: normal; font-size: 22px; line-height: 1;
+  width: 44px; height: 44px;
+  color: var(--ui); background: rgba(0, 0, 0, .35);
+  border: 1px solid var(--gilt-dim); border-radius: 50%;
+  cursor: pointer;
+}
+.controls button:hover:not(:disabled) { background: rgba(210, 171, 87, .18); }
+.controls button:disabled { opacity: .3; cursor: default; }
+.controls label { display: flex; align-items: center; gap: 8px; }
+.controls input {
+  font: inherit; font-style: normal; text-align: center;
+  width: 4.2em; padding: 6px 4px;
+  color: var(--ui); background: rgba(0, 0, 0, .35);
+  border: 1px solid var(--gilt-dim); border-radius: 4px;
+}
+.controls :focus-visible { outline: 2px solid var(--gilt); outline-offset: 2px; }
+.hint { font-size: 17px; }
+</style>
+</head>
+<body>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<main class="stage">
+  <div class="book closed" id="book">
+    <div class="board"></div>
+    <div class="pane left" id="L"></div>
+    <div class="pane right" id="R"></div>
+    <div class="flap" id="flap" hidden>
+      <div class="face front" id="flapFront"></div>
+      <div class="face back" id="flapBack"></div>
+    </div>
+  </div>
+</main>
+
+<nav class="controls" aria-label="Book pages">
+  <span class="hint" id="hint">Tap the cover to open the book</span>
+  <button type="button" id="prev" aria-label="Previous page" hidden>&#8249;</button>
+  <label id="jump" hidden>Page
+    <input id="pageNo" type="number" min="1" max="365" inputmode="numeric" placeholder="&ndash;">
+    of 365
+  </label>
+  <button type="button" id="next" aria-label="Next page" hidden>&#8250;</button>
+</nav>
+
+<script>
+/* ============================================================
+   THE REASONS — one sentence per page, in order.
+   Add new lines to this list; pages without a reason yet stay blank.
+   ============================================================ */
+const REASONS = [
+  "I love how you smile and how it lights up your eyes.",
+  "I love how you touch your nose and make a cute face when you smile.",
+  "I love how you laugh and how it makes you turn red.",
+  "I love the sound of your voice; it is the prettiest thing, and I want to hear it every day.",
+  "I love how brave and amazing you are, despite all the years and the pain you have been through.",
+  "I love how your mind works and the way you think things through; it is the smartest way a person ever could.",
+  "Just seeing your beauty lights me up and leaves me starstruck.",
+  "I love watching you focus on doing your own thing; I could stare at you forever.",
+  "I love how your face stays on my mind the whole day.",
+  "You are the last person I think about before I close my eyes and the first person on my mind before I even open them.",
+  "I feel like I have already known you for a long time.",
+  "I love how nervous I get when I'm with you, and I love simply being in your presence.",
+  "You give me more than butterflies; you give me a calmness I only feel when I have you.",
+  "I love knowing you.",
+  "Thank you for existing in this crazy world.",
+  "You are the person I look up to in life.",
+  "You are the person who makes me feel like myself in a way I have never felt before.",
+  "You are my wish come true.",
+  "I love that I get to open up and share my thoughts with you, and I thank you for it.",
+  "I love how shy I get just from your presence.",
+  "I wish to have you in every lifetime.",
+  "I love how you look, especially when you have just woken up.",
+  "I love how I smile when I see you.",
+  "I love thinking about you all the time.",
+  "I love spending time with you.",
+  "I love how you cry when you have an emotional crash.",
+  "I love your body; you could lose or gain weight and still be the prettiest I have ever seen.",
+  "I love your presence and how it lights up everything around you.",
+  "I love how you talk about life and update me on everything you do.",
+  "I am the luckiest with you.",
+  "You are the person I never thought I would meet in this crazy world.",
+  "No matter where you are in this world, I will always choose to be with you.",
+  "I love how you style yourself when you go out; you could wear the same outfit for the rest of your life and still be fashionable to me.",
+  "You are the best human I have ever met in my entire existence.",
+  "I love your hair, no matter if it is short or long.",
+  "I love your lips, and I want to kiss them all my life.",
+  "I love that you have a natural blush when you smile and laugh.",
+  "I love how you stick the paintbrush in your mouth when you paint.",
+  "I love watching you when we're watching a movie.",
+  "I love to take care of you.",
+  "I love how I feel when I'm with you.",
+  "I love that you exist.",
+  "I love how you cook good food.",
+  "I love that you only go to the gym once a week, and every week is leg week.",
+  "I love your color.",
+  "You are my own actress and model.",
+  "I bagged a baddie.",
+  "I love the way you paint.",
+  "You are the most talented and smartest person I have ever known.",
+];
+
+const TOTAL = 365;
+const LAST = TOTAL + 2;   // sheets: 0 flyleaf, 1 title page, 2..366 the reasons, 367 end leaf
+const ORN = '<div class="orn"><b></b></div>';
+
+const $ = id => document.getElementById(id);
+const book = $('book'), L = $('L'), R = $('R');
+const flap = $('flap'), flapFront = $('flapFront'), flapBack = $('flapBack');
+const prevBtn = $('prev'), nextBtn = $('next'), jump = $('jump'), pageNo = $('pageNo'), hint = $('hint');
+
+const narrow = window.matchMedia('(max-width: 700px)');
+const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+let pos = -1;       // -1 = closed, otherwise the sheet being read
+let busy = false;
+
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+function sheet(i, side) {
+  if (i < 0) {
+    return '<div class="sheet cover"><div class="frame">' +
+      '<div class="num">365</div>' + ORN + '<div class="words">Reasons Why</div></div></div>';
+  }
+  if (i === 0 || i === LAST) {
+    return `<div class="sheet ${side} blank"><div class="body" style="align-items:center">${i === LAST ? ORN : ''}</div></div>`;
+  }
+  if (i === 1) {
+    return `<div class="sheet ${side} title"><div class="body">` +
+      '<h1>365 reasons why</h1>' + ORN +
+      '<p>I want you,</p><p>I choose you,</p><p>and I love you.</p></div></div>';
+  }
+  const n = i - 1, text = REASONS[n - 1];
+  return `<div class="sheet ${side}${text ? '' : ' blank'}">` +
+    `<div class="no">No. ${n}</div>` +
+    `<div class="body">${text ? `<p class="reason${text.length > 95 ? ' long' : ''}">${esc(text)}</p>` : ''}</div>` +
+    ORN + '</div>';
+}
+
+function render() {
+  const single = narrow.matches;
+  book.classList.toggle('single', single);
+  book.classList.toggle('closed', pos < 0);
+  if (single) {
+    R.innerHTML = sheet(pos < 0 ? -1 : Math.max(pos, 1), 'recto');
+  } else if (pos < 0) {
+    L.innerHTML = '';
+    L.style.visibility = 'hidden';
+    R.innerHTML = sheet(-1, 'recto');
+  } else {
+    const s = pos >> 1;
+    L.style.visibility = '';
+    L.innerHTML = sheet(2 * s, 'verso');
+    R.innerHTML = sheet(2 * s + 1, 'recto');
+  }
+  const open = pos >= 0;
+  hint.hidden = open;
+  prevBtn.hidden = jump.hidden = nextBtn.hidden = !open;
+  nextBtn.disabled = single ? pos >= LAST : (pos >> 1) >= (LAST >> 1);
+  if (document.activeElement !== pageNo) {
+    pageNo.value = pos >= 2 && pos <= TOTAL + 1 ? pos - 1 : '';
+  }
+}
+
+function turn(el, from, to, origin) {
+  flap.style.transformOrigin = origin;
+  return el.animate(
+    [{ transform: `rotateY(${from}deg)` }, { transform: `rotateY(${to}deg)` }],
+    { duration: 950, easing: 'cubic-bezier(.45,.05,.3,1)', fill: 'forwards' }
+  );
+}
+
+function flipTo(t) {
+  t = Math.max(-1, Math.min(LAST, t));
+  if (busy || t === pos) return;
+  const single = narrow.matches;
+  const sameSpread = !single && pos >= 0 && t >= 0 && (pos >> 1) === (t >> 1);
+  if (calm.matches || sameSpread || !flap.animate) { pos = t; render(); return; }
+
+  busy = true;
+  const forward = t > pos;
+  let anim;
+  flapBack.innerHTML = '';
+  if (single) {
+    const cur = pos < 0 ? -1 : Math.max(pos, 1), tgt = t < 0 ? -1 : Math.max(t, 1);
+    flap.style.left = '0';
+    if (forward) {
+      flapFront.innerHTML = sheet(cur, 'recto');
+      R.innerHTML = sheet(tgt, 'recto');
+      flap.hidden = false;
+      anim = turn(flap, 0, -92, 'left center');
+    } else {
+      flapFront.innerHTML = sheet(tgt, 'recto');
+      flap.hidden = false;
+      anim = turn(flap, -92, 0, 'left center');
+    }
+  } else {
+    const cs = pos >> 1, ts = t >> 1;
+    if (forward) {
+      flapFront.innerHTML = sheet(pos < 0 ? -1 : 2 * cs + 1, 'recto');
+      flapBack.innerHTML = sheet(2 * ts, 'verso');
+      R.innerHTML = sheet(2 * ts + 1, 'recto');
+      book.classList.remove('closed');
+      flap.style.left = 'var(--pw)';
+      flap.hidden = false;
+      anim = turn(flap, 0, -180, 'left center');
+    } else {
+      flapFront.innerHTML = sheet(2 * cs, 'verso');
+      flapBack.innerHTML = sheet(t < 0 ? -1 : 2 * ts + 1, 'recto');
+      if (t < 0) { L.style.visibility = 'hidden'; book.classList.add('closed'); }
+      else L.innerHTML = sheet(2 * ts, 'verso');
+      flap.style.left = '0';
+      flap.hidden = false;
+      anim = turn(flap, 0, 180, 'right center');
+    }
+  }
+  const done = () => {
+    pos = t;
+    render();
+    flap.hidden = true;
+    anim.cancel();
+    busy = false;
+  };
+  anim.finished.then(done, done);
+}
+
+function step(d) {
+  if (narrow.matches) {
+    if (d > 0) flipTo(pos < 0 ? 1 : Math.max(pos, 1) + 1);
+    else flipTo(pos <= 1 ? -1 : pos - 1);
+  } else if (d > 0) {
+    if (pos < 0) flipTo(1);
+    else if ((pos >> 1) < (LAST >> 1)) flipTo(((pos >> 1) + 1) * 2);
+  } else if (pos >= 0) {
+    const s = pos >> 1;
+    flipTo(s === 0 ? -1 : Math.max(1, (s - 1) * 2));
+  }
+}
+
+L.addEventListener('click', () => step(-1));
+R.addEventListener('click', e => {
+  if (pos >= 0 && narrow.matches) {
+    const box = R.getBoundingClientRect();
+    step(e.clientX - box.left < box.width * .35 ? -1 : 1);
+  } else step(1);
+});
+prevBtn.addEventListener('click', () => step(-1));
+nextBtn.addEventListener('click', () => step(1));
+
+function goToTyped() {
+  const n = parseInt(pageNo.value, 10);
+  if (n >= 1 && n <= TOTAL) { pageNo.blur(); flipTo(n + 1); }
+}
+pageNo.addEventListener('change', goToTyped);
+pageNo.addEventListener('keydown', e => { if (e.key === 'Enter') goToTyped(); });
+
+document.addEventListener('keydown', e => {
+  if (e.target === pageNo) return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') step(1);
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') step(-1);
+});
+
+let touchX = null;
+book.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+book.addEventListener('touchend', e => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  touchX = null;
+  if (Math.abs(dx) > 45) { e.preventDefault(); step(dx < 0 ? 1 : -1); }
+});
+
+narrow.addEventListener('change', () => { if (!busy) render(); });
+
+/* dried flowers and loose petals on the table (same arrangement every visit) */
+(function scatter() {
+  let seed = 365;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const hues = [['#a05a6c', '#6e3344'], ['#d39a2a', '#96640f'], ['#5b58ad', '#35346f'], ['#b9788a', '#7a4152'], ['#6d7a45', '#3f4a26']];
+  const host = $('petals');
+  const petal = (w, hue) => {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.width = w + 'px';
+    p.style.height = w * (.45 + rnd() * .25) + 'px';
+    p.style.background = `radial-gradient(ellipse at 30% 40%, ${hue[0]}, ${hue[1]})`;
+    return p;
+  };
+  for (let f = 0; f < 12; f++) {
+    const flower = document.createElement('div');
+    flower.className = 'flower';
+    const edge = rnd() < .5;
+    flower.style.left = (edge ? (rnd() < .5 ? rnd() * 16 : 84 + rnd() * 16) : rnd() * 100) + '%';
+    flower.style.top = (edge ? rnd() * 100 : (rnd() < .5 ? rnd() * 13 : 87 + rnd() * 13)) + '%';
+    const hue = hues[Math.floor(rnd() * 4)], count = 5 + Math.floor(rnd() * 3), w = 14 + rnd() * 12, turn0 = rnd() * 360;
+    for (let k = 0; k < count; k++) {
+      const p = petal(w, hue);
+      p.style.transform = `translateY(-50%) rotate(${turn0 + k * 360 / count + rnd() * 14}deg)`;
+      flower.appendChild(p);
+    }
+    flower.appendChild(document.createElement('i'));
+    host.appendChild(flower);
+  }
+  for (let k = 0; k < 34; k++) {
+    const p = petal(9 + rnd() * 16, hues[Math.floor(rnd() * hues.length)]);
+    p.style.left = rnd() * 100 + '%';
+    p.style.top = rnd() * 100 + '%';
+    p.style.transform = `rotate(${rnd() * 360}deg)`;
+    host.appendChild(p);
+  }
+})();
+
+render();
+</script>
+</body>
+</html>
