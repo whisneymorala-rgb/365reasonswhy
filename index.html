@@ -7,32 +7,35 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Pinyon+Script&family=Tangerine:wght@400;700&display=swap">
 <style>
-/* Layout: one old leather-bound book lying on a dark wooden table; everything else stays quiet. */
+/* Layout: a writing desk by candlelight. One leather-bound book, read a single page at a time,
+   with a love letter, a wax seal and dried flowers lying around it. */
 :root {
   color-scheme: dark;
-  --table: #21140c;
-  --table-line: #120a05;
+  --table: #1e120a;
+  --table-line: #0f0804;
+  --candle: rgba(255, 176, 84, .2);
   --leather: #4a2216;
   --leather-deep: #2b120b;
   --gilt: #d2ab57;
   --gilt-dim: #9a7a35;
   --paper: #e7d5ab;
-  --paper-shade: #cfb680;
-  --paper-burn: rgba(96, 58, 20, .5);
+  --paper-shade: #cdb37c;
+  --paper-burn: rgba(96, 58, 20, .55);
   --ink: #36200f;
   --ink-faint: rgba(54, 32, 15, .55);
+  --ink-ghost: rgba(54, 32, 15, .26);
+  --wax: #8e1c1c;
+  --wax-deep: #4f0b0b;
+  --ribbon: #7c1620;
   --ui: #d9c69a;
-  --ui-dim: rgba(217, 198, 154, .6);
+  --ui-dim: rgba(217, 198, 154, .65);
 
   --font-title: "Pinyon Script", "Snell Roundhand", "Apple Chancery", cursive;
   --font-hand: "Tangerine", "Apple Chancery", "Snell Roundhand", "Lucida Calligraphy", cursive;
   --font-print: "IM Fell English", "Hoefler Text", Garamond, Georgia, serif;
 
-  --pw: clamp(150px, min(45vw, calc((100dvh - 190px) * .7)), 430px);
+  --pw: clamp(220px, min(84vw, calc((100dvh - 200px) * .7)), 470px);
   --ph: calc(var(--pw) / .7);
-}
-@media (max-width: 700px) {
-  :root { --pw: clamp(220px, min(86vw, calc((100dvh - 190px) * .7)), 420px); }
 }
 
 html, body { height: 100%; }
@@ -41,7 +44,8 @@ body {
   margin: 0;
   background-color: var(--table);
   background-image:
-    radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, .7) 100%),
+    radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, .78) 100%),
+    radial-gradient(circle at 84% 6%, var(--candle), transparent 48%),
     repeating-linear-gradient(0deg, transparent 0 138px, var(--table-line) 138px 141px),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='282'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006 .35' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .33 0 0 0 0 .16 .9 0 0 0 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   color: var(--ui);
@@ -56,8 +60,9 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* dried petals scattered on the table */
-.petals { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+/* ---------- things lying on the desk ---------- */
+.desk { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.dried { position: absolute; inset: 0; filter: sepia(.5) saturate(.75) brightness(.9); }
 .petal {
   position: absolute;
   border-radius: 80% 20% 70% 30% / 60% 40% 60% 40%;
@@ -70,6 +75,44 @@ body {
   border-radius: 50%; background: #3a2412;
 }
 
+/* a folded letter tucked under the book */
+.letter {
+  position: absolute;
+  left: calc(50% - var(--pw) * 1.12); top: calc(50% - var(--ph) * .3);
+  width: calc(var(--pw) * .82); height: calc(var(--pw) * 1.08);
+  transform: rotate(-9deg);
+  box-sizing: border-box;
+  padding: 9% 10%;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 1.18em, var(--ink-ghost) 1.18em calc(1.18em + 1px)) 0 3.3em / 100% 100% no-repeat,
+    linear-gradient(0deg, transparent 49.7%, rgba(60, 35, 10, .22) 50%, transparent 50.6%),
+    linear-gradient(150deg, #dcc898, #bfa46c);
+  box-shadow: inset 0 0 30px var(--paper-burn), 3px 6px 14px rgba(0, 0, 0, .6);
+  font-family: var(--font-hand); font-weight: 700;
+  font-size: calc(var(--pw) / 13); line-height: 1.18; white-space: nowrap;
+  color: var(--ink-faint);
+}
+.letter.two {
+  left: calc(50% + var(--pw) * .34); top: calc(50% - var(--ph) * .52);
+  width: calc(var(--pw) * .7); height: calc(var(--pw) * .5);
+  transform: rotate(12deg);
+  text-align: right;
+}
+/* a wax seal pressed with her initial */
+.seal {
+  position: absolute;
+  left: calc(50% + var(--pw) * .6); top: calc(50% + var(--ph) * .24);
+  width: calc(var(--pw) * .2); height: calc(var(--pw) * .2);
+  border-radius: 47% 53% 50% 50% / 52% 48% 54% 46%;
+  background: radial-gradient(circle at 35% 30%, #b83a32, var(--wax) 45%, var(--wax-deep));
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, .65), inset 0 0 0 calc(var(--pw) * .022) rgba(0, 0, 0, .13),
+    inset 0 0 0 calc(var(--pw) * .028) rgba(255, 190, 170, .16);
+  display: grid; place-items: center;
+  font-family: var(--font-title); font-size: calc(var(--pw) * .13); line-height: 1;
+  color: rgba(40, 4, 4, .75); text-shadow: 0 1px 0 rgba(255, 170, 150, .3);
+  transform: rotate(-14deg);
+}
+
 .stage {
   flex: 1; min-height: 0;
   display: flex; align-items: center; justify-content: center;
@@ -78,54 +121,45 @@ body {
 
 .book {
   position: relative;
-  width: calc(var(--pw) * 2);
-  height: var(--ph);
+  width: var(--pw); height: var(--ph);
   perspective: 2400px;
-  transition: transform .9s cubic-bezier(.45, .05, .3, 1);
+  margin-left: 16px;
 }
-.book.closed { transform: translateX(calc(var(--pw) * -.5)); }
-.book.single { width: var(--pw); }
-.book.single.closed { transform: none; }
 
-/* leather boards seen around the open pages */
+/* silk ribbon marker hanging out of the foot of the book */
+.ribbon {
+  position: absolute; left: 64%; top: 100%;
+  width: calc(var(--pw) * .04); height: calc(var(--pw) * .17);
+  background: linear-gradient(90deg, #56101a, var(--ribbon) 45%, #a02a35 60%, #56101a);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+}
+
+/* the binding seen around the open page: spine on the left, page edges on the right */
 .board {
-  position: absolute; inset: -9px -13px;
-  border-radius: 5px;
-  background: linear-gradient(90deg, var(--leather-deep), var(--leather) 12%, var(--leather-deep) 50%, var(--leather) 88%, var(--leather-deep));
-  box-shadow: 0 30px 60px rgba(0, 0, 0, .7), 0 6px 14px rgba(0, 0, 0, .6);
+  position: absolute; inset: -10px -14px -10px -30px;
+  border-radius: 6px 5px 5px 6px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 17%, var(--gilt-dim) 17% calc(17% + 2px), transparent calc(17% + 2px) 20%) 0 0 / 26px 100% no-repeat,
+    linear-gradient(90deg, var(--leather-deep), #6a3322 12px, var(--leather-deep) 28px, var(--leather) 60%, var(--leather-deep));
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .75), 0 6px 14px rgba(0, 0, 0, .6);
   transition: opacity .7s ease;
 }
 .book.closed .board { opacity: 0; }
-/* the stacked edges of the page block */
-.board::before, .board::after {
-  content: ""; position: absolute; top: 9px; bottom: 9px; width: 9px;
+.board::after {
+  content: ""; position: absolute; top: 10px; bottom: 10px; right: 4px; width: 10px;
   background: repeating-linear-gradient(90deg, #d8c391 0 1px, #a98f5c 1px 2px);
 }
-.board::before { left: 4px; }
-.board::after { right: 4px; }
 
-.pane, .flap {
-  position: absolute; top: 0;
-  width: var(--pw); height: var(--ph);
-}
+.pane, .flap { position: absolute; top: 0; left: 0; width: var(--pw); height: var(--ph); }
 .pane { cursor: pointer; }
-.pane.left { left: 0; }
-.pane.right { left: var(--pw); }
-.book.single .pane.left { display: none; }
-.book.single .pane.right { left: 0; }
-
-.flap { z-index: 5; transform-style: preserve-3d; pointer-events: none; }
-.flap .face {
-  position: absolute; inset: 0;
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-}
-.flap .back { transform: rotateY(180deg); }
+.flap { z-index: 5; transform-style: preserve-3d; transform-origin: left center; pointer-events: none; }
 
 /* ---------- a sheet of old paper ---------- */
 .sheet {
   position: absolute; inset: 0;
   box-sizing: border-box;
   overflow: hidden;
+  border-radius: 0 3px 3px 0;
   font-size: calc(var(--pw) / 10);
   color: var(--ink);
   background-color: var(--paper);
@@ -135,30 +169,32 @@ body {
     linear-gradient(160deg, var(--paper), var(--paper-shade));
   background-size: 260px 260px, 100% 100%, 100% 100%;
   display: flex; flex-direction: column; align-items: center;
-  padding: 1.1em 1em 1em;
+  padding: 1.25em 1.25em 1.15em;
   text-align: center;
+}
+/* hand-ruled double border */
+.sheet::before {
+  content: ""; position: absolute; inset: .55em .55em .55em .75em; pointer-events: none;
+  border: 1px solid var(--ink-ghost);
+  outline: 1px solid var(--ink-ghost); outline-offset: -.24em;
 }
 /* burnt edges, plus the shadow that falls into the spine */
 .sheet::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  box-shadow: inset 0 0 2.2em var(--paper-burn), inset 0 0 .5em rgba(70, 40, 10, .45);
+  box-shadow: inset 0 0 2.4em var(--paper-burn), inset 0 0 .5em rgba(70, 40, 10, .5);
+  background: linear-gradient(90deg, rgba(40, 20, 5, .5), rgba(40, 20, 5, .12) 6%, transparent 14%);
 }
-.sheet.recto::after {
-  background: linear-gradient(90deg, rgba(40, 20, 5, .5), rgba(40, 20, 5, .12) 7%, transparent 16%);
-}
-.sheet.verso::after {
-  background: linear-gradient(270deg, rgba(40, 20, 5, .5), rgba(40, 20, 5, .12) 7%, transparent 16%);
-}
-.book.single .sheet.recto::after { background: none; }
-.sheet.recto { border-radius: 0 3px 3px 0; }
-.sheet.verso { border-radius: 3px 0 0 3px; }
 
-.sheet .no {
-  font-family: var(--font-print); font-style: italic;
-  font-size: .42em; letter-spacing: .08em; color: var(--ink-faint);
+.sheet .for {
+  font-family: var(--font-title); font-size: .78em; line-height: 1.1;
+  color: var(--ink); opacity: .8;
+}
+.sheet .for::after {
+  content: ""; display: block; width: 2.2em; height: 1px; margin: .12em auto 0;
+  background: var(--ink-faint);
 }
 .sheet .body {
-  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
   width: 100%;
 }
 .sheet .reason {
@@ -169,17 +205,22 @@ body {
   text-shadow: 0 0 1px rgba(54, 32, 15, .55);
 }
 .sheet .reason.long { font-size: 1.02em; }
-.orn {
-  display: flex; align-items: center; gap: .5em;
-  width: 42%; color: var(--ink-faint);
+.sheet .folio {
+  display: flex; align-items: center; gap: .7em;
+  width: 52%;
+  font-family: var(--font-print); font-style: italic;
+  font-size: .56em; letter-spacing: .06em; color: var(--ink-faint);
 }
+.sheet .folio::before, .sheet .folio::after { content: ""; flex: 1; height: 1px; background: currentColor; }
+
+.orn { display: flex; align-items: center; gap: .35em; width: 46%; color: var(--ink-faint); }
 .orn::before, .orn::after { content: ""; flex: 1; height: 1px; background: currentColor; }
-.orn b { width: .2em; height: .2em; background: currentColor; transform: rotate(45deg); }
-.sheet.blank .orn { opacity: .5; }
+.orn b { width: .16em; height: .16em; background: currentColor; transform: rotate(45deg); }
+.orn b:nth-child(2) { width: .26em; height: .26em; }
 
 /* title page */
 .sheet.title h1 {
-  margin: 0 0 .5em;
+  margin: 0 0 .45em;
   font-family: var(--font-title); font-weight: 400;
   font-size: 1.5em; line-height: 1.05;
   text-shadow: 0 0 1px rgba(54, 32, 15, .5);
@@ -190,7 +231,7 @@ body {
   font-size: 1.35em; line-height: 1.25;
   text-shadow: 0 0 1px rgba(54, 32, 15, .5);
 }
-.sheet.title .orn { margin: 0 auto .6em; }
+.sheet.title .orn { margin-bottom: .55em; }
 
 /* ---------- the cover ---------- */
 .sheet.cover {
@@ -199,33 +240,48 @@ body {
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
     radial-gradient(ellipse at 40% 35%, #5d2c1c, var(--leather) 55%, var(--leather-deep));
+  background-size: 260px 260px, 100% 100%;
   border-radius: 2px 6px 6px 2px;
   padding: 0;
   justify-content: center;
-  box-shadow: 2px 2px 0 #cbb489, 4px 4px 0 #a98f5c, 6px 6px 0 var(--leather-deep), 0 30px 60px rgba(0, 0, 0, .7);
+  box-shadow: 2px 2px 0 #cbb489, 4px 4px 0 #a98f5c, 6px 6px 0 var(--leather-deep), 0 30px 60px rgba(0, 0, 0, .75);
 }
+.sheet.cover::before { content: none; }
 .sheet.cover::after {
   box-shadow: inset 0 0 3em rgba(0, 0, 0, .6);
   background: linear-gradient(90deg, rgba(0, 0, 0, .55), rgba(255, 255, 255, .06) 5%, rgba(0, 0, 0, .25) 7%, transparent 11%);
 }
 .flap .sheet.cover { box-shadow: none; }
 .cover .frame {
-  position: absolute; inset: .7em .7em .7em 1.1em;
+  position: absolute; inset: .75em .75em .75em 1.15em;
   border: 2px solid var(--gilt-dim);
-  outline: 1px solid var(--gilt-dim); outline-offset: -.28em;
-  border-radius: 2px;
+  outline: 1px solid var(--gilt-dim); outline-offset: -.3em;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: .1em;
 }
+/* inner oval cartouche around the title */
+.cover .frame::before {
+  content: ""; position: absolute; inset: 17% 7%;
+  border: 1px solid var(--gilt-dim); border-radius: 50%;
+  box-shadow: 0 0 0 .14em var(--leather), 0 0 0 calc(.14em + 1px) rgba(154, 122, 53, .55);
+}
+/* brass corner guards */
+.cover .guard {
+  position: absolute; right: 0; width: 1.7em; height: 1.7em; z-index: 1;
+  background: linear-gradient(135deg, #f0d48a, #a8843a 45%, #6f5320 70%, #caa552);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, .6);
+}
+.cover .guard.t { top: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); border-radius: 0 6px 0 0; }
+.cover .guard.b { bottom: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); border-radius: 0 0 6px 0; }
 .cover .num {
-  font-family: var(--font-title); font-size: 3em; line-height: 1;
+  font-family: var(--font-title); font-size: 2.9em; line-height: 1;
   text-shadow: 0 1px 0 rgba(0, 0, 0, .7), 0 0 .3em rgba(210, 171, 87, .25);
 }
 .cover .words {
-  font-family: var(--font-title); font-size: 1.55em; line-height: 1.1;
+  font-family: var(--font-title); font-size: 1.5em; line-height: 1.1;
   text-shadow: 0 1px 0 rgba(0, 0, 0, .7);
 }
-.cover .orn { color: var(--gilt-dim); margin: .5em 0; }
+.cover .orn { color: var(--gilt-dim); margin: .45em 0; width: 40%; }
 
 /* ---------- controls ---------- */
 .controls {
@@ -239,7 +295,7 @@ body {
 .controls button {
   font: inherit; font-style: normal; font-size: 22px; line-height: 1;
   width: 44px; height: 44px;
-  color: var(--ui); background: rgba(0, 0, 0, .35);
+  color: var(--ui); background: rgba(0, 0, 0, .4);
   border: 1px solid var(--gilt-dim); border-radius: 50%;
   cursor: pointer;
 }
@@ -249,7 +305,7 @@ body {
 .controls input {
   font: inherit; font-style: normal; text-align: center;
   width: 4.2em; padding: 6px 4px;
-  color: var(--ui); background: rgba(0, 0, 0, .35);
+  color: var(--ui); background: rgba(0, 0, 0, .4);
   border: 1px solid var(--gilt-dim); border-radius: 4px;
 }
 .controls :focus-visible { outline: 2px solid var(--gilt); outline-offset: 2px; }
@@ -258,17 +314,19 @@ body {
 </head>
 <body>
 
-<div class="petals" id="petals" aria-hidden="true"></div>
+<div class="desk" aria-hidden="true">
+  <div class="dried" id="dried"></div>
+  <div class="letter">My dearest Leah,</div>
+  <div class="letter two">always yours</div>
+  <div class="seal">L</div>
+</div>
 
 <main class="stage">
   <div class="book closed" id="book">
+    <div class="ribbon"></div>
     <div class="board"></div>
-    <div class="pane left" id="L"></div>
-    <div class="pane right" id="R"></div>
-    <div class="flap" id="flap" hidden>
-      <div class="face front" id="flapFront"></div>
-      <div class="face back" id="flapBack"></div>
-    </div>
+    <div class="pane" id="page"></div>
+    <div class="flap" id="flap" hidden></div>
   </div>
 </main>
 
@@ -337,150 +395,87 @@ const REASONS = [
   "I bagged a baddie.",
   "I love the way you paint.",
   "You are the most talented and smartest person I have ever known.",
+  "You are the prettiest.",
+  "You help me become a better version of myself each day.",
+  "I love your height; it is just as perfect as you are.",
+  "I love how you understand me when I don't even understand myself.",
+  "I love how you cheer me up.",
+  "I love knowing every part of you, even the parts you don't talk about to anyone.",
 ];
 
+const FOR_WHOM = "for Leah";
 const TOTAL = 365;
-const LAST = TOTAL + 2;   // sheets: 0 flyleaf, 1 title page, 2..366 the reasons, 367 end leaf
-const ORN = '<div class="orn"><b></b></div>';
+const LAST = TOTAL + 2;   // sheets: 0 cover, 1 title page, 2..366 the reasons, 367 end leaf
+const ORN = '<div class="orn"><b></b><b></b><b></b></div>';
 
 const $ = id => document.getElementById(id);
-const book = $('book'), L = $('L'), R = $('R');
-const flap = $('flap'), flapFront = $('flapFront'), flapBack = $('flapBack');
+const book = $('book'), page = $('page'), flap = $('flap');
 const prevBtn = $('prev'), nextBtn = $('next'), jump = $('jump'), pageNo = $('pageNo'), hint = $('hint');
-
-const narrow = window.matchMedia('(max-width: 700px)');
 const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
-let pos = -1;       // -1 = closed, otherwise the sheet being read
+let pos = 0;        // which sheet is showing; 0 = the closed cover
 let busy = false;
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
-function sheet(i, side) {
-  if (i < 0) {
-    return '<div class="sheet cover"><div class="frame">' +
+function sheet(i) {
+  if (i === 0) {
+    return '<div class="sheet cover"><span class="guard t"></span><span class="guard b"></span><div class="frame">' +
       '<div class="num">365</div>' + ORN + '<div class="words">Reasons Why</div></div></div>';
   }
-  if (i === 0 || i === LAST) {
-    return `<div class="sheet ${side} blank"><div class="body" style="align-items:center">${i === LAST ? ORN : ''}</div></div>`;
-  }
   if (i === 1) {
-    return `<div class="sheet ${side} title"><div class="body">` +
+    return '<div class="sheet title"><div class="body">' +
       '<h1>365 reasons why</h1>' + ORN +
       '<p>I want you,</p><p>I choose you,</p><p>and I love you.</p></div></div>';
   }
+  if (i === LAST) return `<div class="sheet"><div class="body">${ORN}</div></div>`;
   const n = i - 1, text = REASONS[n - 1];
-  return `<div class="sheet ${side}${text ? '' : ' blank'}">` +
-    `<div class="no">No. ${n}</div>` +
+  return '<div class="sheet">' +
+    `<div class="for">${FOR_WHOM}</div>` +
     `<div class="body">${text ? `<p class="reason${text.length > 95 ? ' long' : ''}">${esc(text)}</p>` : ''}</div>` +
-    ORN + '</div>';
+    `<div class="folio">${n}</div></div>`;
 }
 
 function render() {
-  const single = narrow.matches;
-  book.classList.toggle('single', single);
-  book.classList.toggle('closed', pos < 0);
-  if (single) {
-    R.innerHTML = sheet(pos < 0 ? -1 : Math.max(pos, 1), 'recto');
-  } else if (pos < 0) {
-    L.innerHTML = '';
-    L.style.visibility = 'hidden';
-    R.innerHTML = sheet(-1, 'recto');
-  } else {
-    const s = pos >> 1;
-    L.style.visibility = '';
-    L.innerHTML = sheet(2 * s, 'verso');
-    R.innerHTML = sheet(2 * s + 1, 'recto');
-  }
-  const open = pos >= 0;
+  const open = pos > 0;
+  book.classList.toggle('closed', !open);
+  page.innerHTML = sheet(pos);
   hint.hidden = open;
   prevBtn.hidden = jump.hidden = nextBtn.hidden = !open;
-  nextBtn.disabled = single ? pos >= LAST : (pos >> 1) >= (LAST >> 1);
-  if (document.activeElement !== pageNo) {
-    pageNo.value = pos >= 2 && pos <= TOTAL + 1 ? pos - 1 : '';
-  }
-}
-
-function turn(el, from, to, origin) {
-  flap.style.transformOrigin = origin;
-  return el.animate(
-    [{ transform: `rotateY(${from}deg)` }, { transform: `rotateY(${to}deg)` }],
-    { duration: 950, easing: 'cubic-bezier(.45,.05,.3,1)', fill: 'forwards' }
-  );
+  nextBtn.disabled = pos >= LAST;
+  if (document.activeElement !== pageNo) pageNo.value = pos >= 2 && pos <= TOTAL + 1 ? pos - 1 : '';
 }
 
 function flipTo(t) {
-  t = Math.max(-1, Math.min(LAST, t));
+  t = Math.max(0, Math.min(LAST, t));
   if (busy || t === pos) return;
-  const single = narrow.matches;
-  const sameSpread = !single && pos >= 0 && t >= 0 && (pos >> 1) === (t >> 1);
-  if (calm.matches || sameSpread || !flap.animate) { pos = t; render(); return; }
+  if (calm.matches || !flap.animate) { pos = t; render(); return; }
 
   busy = true;
   const forward = t > pos;
-  let anim;
-  flapBack.innerHTML = '';
-  if (single) {
-    const cur = pos < 0 ? -1 : Math.max(pos, 1), tgt = t < 0 ? -1 : Math.max(t, 1);
-    flap.style.left = '0';
-    if (forward) {
-      flapFront.innerHTML = sheet(cur, 'recto');
-      R.innerHTML = sheet(tgt, 'recto');
-      flap.hidden = false;
-      anim = turn(flap, 0, -92, 'left center');
-    } else {
-      flapFront.innerHTML = sheet(tgt, 'recto');
-      flap.hidden = false;
-      anim = turn(flap, -92, 0, 'left center');
-    }
-  } else {
-    const cs = pos >> 1, ts = t >> 1;
-    if (forward) {
-      flapFront.innerHTML = sheet(pos < 0 ? -1 : 2 * cs + 1, 'recto');
-      flapBack.innerHTML = sheet(2 * ts, 'verso');
-      R.innerHTML = sheet(2 * ts + 1, 'recto');
-      book.classList.remove('closed');
-      flap.style.left = 'var(--pw)';
-      flap.hidden = false;
-      anim = turn(flap, 0, -180, 'left center');
-    } else {
-      flapFront.innerHTML = sheet(2 * cs, 'verso');
-      flapBack.innerHTML = sheet(t < 0 ? -1 : 2 * ts + 1, 'recto');
-      if (t < 0) { L.style.visibility = 'hidden'; book.classList.add('closed'); }
-      else L.innerHTML = sheet(2 * ts, 'verso');
-      flap.style.left = '0';
-      flap.hidden = false;
-      anim = turn(flap, 0, 180, 'right center');
-    }
-  }
+  // turning forward lifts the current page away; turning back lays the earlier page down again
+  flap.innerHTML = sheet(forward ? pos : t);
+  if (forward) { page.innerHTML = sheet(t); book.classList.remove('closed'); }
+  flap.hidden = false;
+  const lifted = { transform: 'rotateY(-96deg)', filter: 'brightness(.55)' };
+  const flat = { transform: 'rotateY(0deg)', filter: 'brightness(1)' };
+  const anim = flap.animate(forward ? [flat, lifted] : [lifted, flat],
+    { duration: 850, easing: forward ? 'cubic-bezier(.5,0,.75,.4)' : 'cubic-bezier(.25,.6,.5,1)', fill: 'forwards' });
   const done = () => {
     pos = t;
     render();
     flap.hidden = true;
+    flap.innerHTML = '';
     anim.cancel();
     busy = false;
   };
   anim.finished.then(done, done);
 }
 
-function step(d) {
-  if (narrow.matches) {
-    if (d > 0) flipTo(pos < 0 ? 1 : Math.max(pos, 1) + 1);
-    else flipTo(pos <= 1 ? -1 : pos - 1);
-  } else if (d > 0) {
-    if (pos < 0) flipTo(1);
-    else if ((pos >> 1) < (LAST >> 1)) flipTo(((pos >> 1) + 1) * 2);
-  } else if (pos >= 0) {
-    const s = pos >> 1;
-    flipTo(s === 0 ? -1 : Math.max(1, (s - 1) * 2));
-  }
-}
+const step = d => flipTo(pos + d);
 
-L.addEventListener('click', () => step(-1));
-R.addEventListener('click', e => {
-  if (pos >= 0 && narrow.matches) {
-    const box = R.getBoundingClientRect();
-    step(e.clientX - box.left < box.width * .35 ? -1 : 1);
-  } else step(1);
+page.addEventListener('click', e => {
+  const box = page.getBoundingClientRect();
+  step(pos > 0 && e.clientX - box.left < box.width * .35 ? -1 : 1);
 });
 prevBtn.addEventListener('click', () => step(-1));
 nextBtn.addEventListener('click', () => step(1));
@@ -507,14 +502,12 @@ book.addEventListener('touchend', e => {
   if (Math.abs(dx) > 45) { e.preventDefault(); step(dx < 0 ? 1 : -1); }
 });
 
-narrow.addEventListener('change', () => { if (!busy) render(); });
-
-/* dried flowers and loose petals on the table (same arrangement every visit) */
+/* dried flowers and loose petals on the desk (same arrangement every visit) */
 (function scatter() {
   let seed = 365;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const hues = [['#a05a6c', '#6e3344'], ['#d39a2a', '#96640f'], ['#5b58ad', '#35346f'], ['#b9788a', '#7a4152'], ['#6d7a45', '#3f4a26']];
-  const host = $('petals');
+  const host = $('dried');
   const petal = (w, hue) => {
     const p = document.createElement('div');
     p.className = 'petal';
