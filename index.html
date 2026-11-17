@@ -970,6 +970,11 @@ const REASONS = [
 ];
 
 const FOR_WHOM = "for Leah";
+
+/* An email is sent to this address every time the garden is watered.
+   Only works when the book is hosted as a normal website (for example GitHub Pages);
+   leave it empty to switch the emails off. */
+const NOTIFY_EMAIL = "whisneymorala@gmail.com";
 const TOTAL = 365;
 const LAST = TOTAL + 2;   // sheets: 0 cover, 1 title page, 2..366 the reasons, 367 end leaf
 const ORN = '<div class="orn"><b></b><b></b><b></b></div>';
@@ -1473,6 +1478,18 @@ book.addEventListener('touchend', e => {
     const from = garden.days;
     garden = { days: from + 1, last: today() };
     keepGarden(); pushFavs(); showButton();
+    if (NOTIFY_EMAIL && !window.claude) {
+      fetch('https://formsubmit.co/ajax/' + encodeURIComponent(NOTIFY_EMAIL), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          _subject: '365 Reasons Why: the garden was watered',
+          message: 'The garden was just watered. That makes ' + garden.days + ' time' + (garden.days === 1 ? '' : 's') + ' in total.',
+          when: new Date().toLocaleString(),
+          _captcha: 'false', _template: 'box',
+        }),
+      }).catch(() => {});
+    }
     say(garden.days === 1 ? 'Watered. The lilies and roses grow bigger every time you water them.'
       : 'Watered ' + garden.days + ' times.');
     if (calm.matches) return drawFront(garden.days);
