@@ -1073,7 +1073,7 @@ function pushFavs() {
   if (!favDoc) return;
   if (writing) { writeAgain = true; return; }
   writing = true;
-  favDoc.set({ pages: [...favs].sort((a, b) => a - b), garden: { days: garden.days, last: garden.last } })
+  favDoc.set({ pages: [...favs], garden: { days: garden.days, last: garden.last } })
     .catch(() => { favDoc = null; })
     .finally(() => { writing = false; if (writeAgain) { writeAgain = false; pushFavs(); } });
 }
@@ -1109,7 +1109,7 @@ function pushFavs() {
   } catch (e) {}
 })();
 function fillFavs() {
-  const pages = [...favs].filter(n => REASONS[n - 1]).sort((a, b) => a - b);
+  const pages = [...favs].filter(n => REASONS[n - 1]).reverse();   // newest bookmark first
   favsEmpty.hidden = pages.length > 0;
   favsList.innerHTML = pages.map(n =>
     `<li><button type="button" data-n="${n}"><span class="n">${n}</span><span class="t">${esc(REASONS[n - 1])}</span></button></li>`).join('');
