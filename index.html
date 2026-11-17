@@ -1404,6 +1404,16 @@ book.addEventListener('touchend', e => {
         else flower(x, fx, fy, size, kind, col, rnd);
       }
     });
+    // a bank of white lilies along the left side, always in bloom
+    const lilyIm = IMG['lily-white'];
+    if (lilyIm) {
+      const r2 = seeded(909), bank = [];
+      for (let i = 0; i < 20; i++) bank.push([W * (.01 + r2() * .36), H * (.52 + r2() * .44), r2()]);
+      bank.sort((a, b) => a[1] - b[1]).forEach(([lx, ly, t]) => {
+        const depth = (ly / H - .52) / .44;
+        stand(x, lilyIm, lx, ly, (62 + depth * 96 + t * 26) * u, (t - .5) * .35, 1);
+      });
+    }
   }
 
   let fx, FW = 0, FH = 0, drops = [];
