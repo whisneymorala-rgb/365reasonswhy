@@ -85,9 +85,9 @@ body::after {
 }
 .gl canvas { display: block; width: 100%; height: 100%; transform-origin: 50% 100%; }
 .gl.far { --d: 5; filter: blur(2.5px); }
-.gl.mid { --d: 11; }
+.gl.mid { --d: 11; filter: brightness(.8) saturate(.88); }
 .gl.mid canvas { animation: sway 9s ease-in-out infinite alternate; }
-.gl.front { --d: 20; }
+.gl.front { --d: 20; filter: brightness(.84) saturate(.9); }
 .gl.front canvas { animation: sway 6s ease-in-out infinite alternate-reverse; }
 @keyframes sway { from { transform: skewX(-.5deg); } to { transform: skewX(.5deg); } }
 @media (prefers-reduced-motion: reduce) { .gl { transition: none; } .gl canvas { animation: none !important; } }
@@ -1408,18 +1408,18 @@ book.addEventListener('touchend', e => {
         const fx = cx + (rnd() - .5) * r * 2.4, fy = cy + (rnd() - .6) * r * 1.2;
         x.strokeStyle = '#3c5a2a'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(fx, fy); x.lineTo(fx + (rnd() - .5) * 8, fy + r * .7); x.stroke();
         const pick = rnd(), rose = IMG['rose-' + (pick < .4 ? 1 : pick < .7 ? 2 : 3)], size = (8 + depth * 10 + rnd() * 4) * u;
-        if (rose && b < .6) stand(x, rose, fx, fy + size * 1.6, size * 3.3, (rnd() - .5) * .5, 1);
+        if (rose && b < .6) stand(x, rose, fx, fy + size * 1.1, size * 2.2, (rnd() - .5) * .5, 1);
         else flower(x, fx, fy, size, kind, col, rnd);
       }
     });
     // white lilies and red roses scattered together across the whole garden, always in bloom
     if (IMG['lily-1'] && IMG['rose-1']) {
       const r2 = seeded(909), bank = [];
-      for (let i = 0; i < 60; i++) bank.push([W * (.01 + r2() * .98), H * (.47 + r2() * .46), r2(), r2()]);
+      for (let i = 0; i < 150; i++) bank.push([W * (.01 + r2() * .98), H * (.47 + r2() * .46), r2(), r2()]);
       bank.sort((a, b) => a[1] - b[1]).forEach(([lx, ly, t, kind]) => {
         const depth = (ly / H - .47) / .46, lean = (t - .5) * .4;
-        if (kind < .5) sprig(x, 'rose', IMG['rose-' + (1 + Math.floor(kind * 6))], lx, ly, (34 + depth * 44 + t * 14) * u, lean);
-        else sprig(x, 'lily', IMG['lily-' + (kind < .75 ? 1 : 2)], lx, ly, (40 + depth * 52 + t * 16) * u, lean);
+        if (kind < .5) sprig(x, 'rose', IMG['rose-' + (1 + Math.floor(kind * 6))], lx, ly, (20 + depth * 24 + t * 8) * u, lean);
+        else sprig(x, 'lily', IMG['lily-' + (kind < .75 ? 1 : 2)], lx, ly, (24 + depth * 28 + t * 9) * u, lean);
       });
     }
   }
@@ -1434,7 +1434,7 @@ book.addEventListener('touchend', e => {
   }
   function drawFront(days) {
     fx.clearRect(0, 0, FW, FH);
-    const rnd = seeded(365), tall = clamp(FH * .33, 150, 300), count = FW < 600 ? 5 : 7;
+    const rnd = seeded(365), tall = clamp(FH * .24, 110, 210), count = FW < 600 ? 7 : 13;
     fx.lineCap = 'round';
     grass(rnd, Math.round(FW / 6), tall * .45, ['#2c4a1e', '#36582a', '#24401a']);
     const extra = clamp(days - 4, 0, 90);               // after full bloom, each day adds another lily
