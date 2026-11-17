@@ -1249,10 +1249,10 @@ book.addEventListener('touchend', e => {
     x.setTransform(dpr, 0, 0, dpr, 0, 0);
     return [x, w, h];
   }
-  /* the flowers themselves are pictures: white lilies, and red and pink roses */
+  /* the blooms are pictures of white lilies and red roses; stems and leaves are drawn */
   const IMG = {};
   let repaintTimer;
-  ['lily-white', 'rose-red-1', 'rose-red-2', 'rose-red-3', 'rose-pink-1', 'rose-pink-2', 'rose-pink-3'].forEach(name => {
+  ['lily-1', 'lily-2', 'rose-1', 'rose-2', 'rose-3'].forEach(name => {
     const im = new Image();
     im.onload = () => { IMG[name] = im; clearTimeout(repaintTimer); repaintTimer = setTimeout(() => paint(), 120); };
     im.src = 'flowers/' + name + '.webp';
@@ -1273,32 +1273,40 @@ book.addEventListener('touchend', e => {
   }
   // how big a plant is after s waterings: a young plant at 0, fully grown at 4
   const grown = s => { const g = clamp(s / 4, 0, 1); return .24 + .76 * g * g * (3 - 2 * g); };
-  function lilyPlant(x, bx, by, h, s, lean) {
-    const im = IMG['lily-white'];
-    if (im) stand(x, im, bx, by + h * .03, h * grown(s), lean * .6, 1);
-    else lily(x, bx, by, h * .8, s, LILIES[0], lean);
-  }
-  // a rose bush: up to three stems with leaves, a bloom at the tip of each
-  const CANES = [[.05, 1, 3], [-.42, .72, 1], [.46, .8, 2]];
-  function rosePlant(x, tint, bx, by, h, s, lean) {
-    const k = grown(s), H = h * k, canes = k < .45 ? 1 : k < .7 ? 2 : 3;
+  // a plant: up to three stems with leaves, and a bloom at the tip of each
+  const CANES = [[.05, 1], [-.42, .72], [.46, .8]];
+  function bloomPlant(x, kind, bx, by, h, s, lean) {
+    const k = grown(s), H = h * k, canes = k < .45 ? 1 : k < .7 ? 2 : 3, isLily = kind === 'lily';
     for (let c = canes - 1; c >= 0; c--) {
-      const a = CANES[c][0] + lean, len = H * CANES[c][1];
+      const a = CANES[c][0] * (isLily ? .7 : 1) + lean, len = H * CANES[c][1];
       const tx = bx + Math.sin(a) * len, ty = by - Math.cos(a) * len, mx = bx + Math.sin(a) * len * .25, my = by - len * .55;
-      x.strokeStyle = '#2f5226'; x.lineWidth = clamp(H * .035, 2, 7); x.lineCap = 'round';
+      x.strokeStyle = isLily ? '#4c7433' : '#2f5226'; x.lineWidth = clamp(H * .035, 2, 7); x.lineCap = 'round';
       x.beginPath(); x.moveTo(bx, by); x.quadraticCurveTo(mx, my, tx, ty); x.stroke();
-      for (let j = 0; j < 4; j++) {
-        const t = .25 + j * .17, u = 1 - t;
+      const leaves = isLily ? 7 : 4;
+      for (let j = 0; j < leaves; j++) {
+        const t = (isLily ? .12 : .25) + j * (isLily ? .11 : .17), u = 1 - t, side = j % 2 ? 1 : -1;
         const px = u * u * bx + 2 * u * t * mx + t * t * tx, py = u * u * by + 2 * u * t * my + t * t * ty;
-        leaf(x, px, py, H * .26, H * .1, (j % 2 ? 1.15 : -1.15) + a, j % 2 ? '#3f6d33' : '#2f5a2b');
-        leaf(x, px, py, H * .26, H * .014, (j % 2 ? 1.15 : -1.15) + a, 'rgba(190, 220, 150, .35)');
+        if (isLily) leaf(x, px, py, H * .3, H * .045, side * .85 + a, j % 2 ? '#5b8a3c' : '#47722f');
+        else {
+          leaf(x, px, py, H * .26, H * .1, side * 1.15 + a, j % 2 ? '#3f6d33' : '#2f5a2b');
+          leaf(x, px, py, H * .26, H * .014, side * 1.15 + a, 'rgba(190, 220, 150, .35)');
+        }
       }
-      // young canes carry a closed bud; the leading cane opens fully once the bush is grown
-      const im = IMG['rose-' + tint + '-' + (c === 0 && k > .75 ? 3 : CANES[c][2] === 3 ? 1 : CANES[c][2])];
-      const size = H * (c === 0 ? .56 : .42);
-      if (im) stand(x, im, tx, ty + size * .55, size, a * .5, 1);
-      else flower(x, tx, ty, size * .4, 1, tint === 'red' ? '#b3202c' : '#eaa6b8', () => .3);
+      const im = IMG[isLily ? 'lily-' + (1 + (c % 2)) : 'rose-' + (1 + c)];
+      const size = H * (isLily ? (c === 0 ? .5 : .4) : (c === 0 ? .52 : .4)) * (k < .45 ? .8 : 1);
+      if (im) stand(x, im, tx, ty + size * .5, size, a * .5, 1);
+      else if (isLily) lily(x, tx, ty + size * .5, size, 4, LILIES[0], 0);
+      else flower(x, tx, ty, size * .4, 1, '#b3202c', () => .3);
     }
+  }
+  // one bloom on its own short stem, for the flowers scattered through the garden
+  function sprig(x, kind, im, lx, ly, size, lean) {
+    const isLily = kind === 'lily';
+    x.strokeStyle = isLily ? '#4c7433' : '#2f5226'; x.lineWidth = Math.max(2, size * .06); x.lineCap = 'round';
+    x.beginPath(); x.moveTo(lx, ly); x.quadraticCurveTo(lx + lean * 20, ly + size * .6, lx - lean * 14, ly + size * 1.2); x.stroke();
+    if (isLily) for (let j = 0; j < 4; j++) leaf(x, lx, ly + size * (.35 + j * .2), size * .7, size * .09, (j % 2 ? .9 : -.9), j % 2 ? '#5b8a3c' : '#47722f');
+    else { leaf(x, lx + lean * 6, ly + size * .5, size * .5, size * .2, 1.2, '#3f6d33'); leaf(x, lx + lean * 2, ly + size * .8, size * .5, size * .2, -1.2, '#2f5a2b'); }
+    stand(x, im, lx, ly + size * .3, size, lean, 1);
   }
   const disc = (x, cx, cy, r, col) => { x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, TAU); x.fill(); };
   function leaf(x, bx, by, len, wid, ang, col) {
@@ -1399,27 +1407,19 @@ book.addEventListener('touchend', e => {
       for (let k = 0; k < 4 + Math.floor(rnd() * 4); k++) {
         const fx = cx + (rnd() - .5) * r * 2.4, fy = cy + (rnd() - .6) * r * 1.2;
         x.strokeStyle = '#3c5a2a'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(fx, fy); x.lineTo(fx + (rnd() - .5) * 8, fy + r * .7); x.stroke();
-        const pick = rnd(), rose = IMG['rose-red-' + (pick < .62 ? 3 : pick < .82 ? 1 : 2)], size = (8 + depth * 10 + rnd() * 4) * u;
+        const pick = rnd(), rose = IMG['rose-' + (pick < .4 ? 1 : pick < .7 ? 2 : 3)], size = (8 + depth * 10 + rnd() * 4) * u;
         if (rose && b < .6) stand(x, rose, fx, fy + size * 1.6, size * 3.3, (rnd() - .5) * .5, 1);
         else flower(x, fx, fy, size, kind, col, rnd);
       }
     });
     // white lilies and red roses scattered together across the whole garden, always in bloom
-    const lilyIm = IMG['lily-white'];
-    if (lilyIm) {
+    if (IMG['lily-1'] && IMG['rose-1']) {
       const r2 = seeded(909), bank = [];
-      for (let i = 0; i < 46; i++) bank.push([W * (.01 + r2() * .98), H * (.5 + r2() * .46), r2(), r2()]);
-      bank.sort((a, b) => a[1] - b[1]).forEach(([lx, ly, t, kind], n) => {
-        const depth = (ly / H - .5) / .46, lean = (t - .5) * .35;
-        const rose = IMG['rose-red-' + (kind < .28 ? 3 : kind < .38 ? 1 : 2)];
-        if (kind < .46 && rose) {
-          const size = (38 + depth * 46 + t * 14) * u;
-          x.strokeStyle = '#2f5226'; x.lineWidth = Math.max(2, size * .06); x.lineCap = 'round';
-          x.beginPath(); x.moveTo(lx, ly); x.quadraticCurveTo(lx + lean * 20, ly + size * .5, lx - lean * 14, ly + size); x.stroke();
-          leaf(x, lx + lean * 6, ly + size * .45, size * .5, size * .2, 1.2, '#3f6d33');
-          leaf(x, lx + lean * 2, ly + size * .7, size * .5, size * .2, -1.2, '#2f5a2b');
-          stand(x, rose, lx, ly + size * .2, size, lean, 1);
-        } else stand(x, lilyIm, lx, ly, (62 + depth * 96 + t * 26) * u, lean, 1);
+      for (let i = 0; i < 60; i++) bank.push([W * (.01 + r2() * .98), H * (.47 + r2() * .46), r2(), r2()]);
+      bank.sort((a, b) => a[1] - b[1]).forEach(([lx, ly, t, kind]) => {
+        const depth = (ly / H - .47) / .46, lean = (t - .5) * .4;
+        if (kind < .5) sprig(x, 'rose', IMG['rose-' + (1 + Math.floor(kind * 6))], lx, ly, (34 + depth * 44 + t * 14) * u, lean);
+        else sprig(x, 'lily', IMG['lily-' + (kind < .75 ? 1 : 2)], lx, ly, (40 + depth * 52 + t * 16) * u, lean);
       });
     }
   }
@@ -1441,14 +1441,12 @@ book.addEventListener('touchend', e => {
     for (let e = 0; e < Math.ceil(extra); e++) {
       const ex = rnd() * FW, eh = tall * (.3 + rnd() * .38), lean = (rnd() - .5) * .3, cols = LILIES[1 + (e % 3)];
       const es = 4 * clamp(extra - e, 0, 1);
-      if (e % 3 === 0) lilyPlant(fx, ex, FH - 4, eh * 1.2, es, lean);
-      else rosePlant(fx, e % 3 === 1 ? 'red' : 'pink', ex, FH - 4, eh * 1.2, es, lean);
+      bloomPlant(fx, e % 2 ? 'rose' : 'lily', ex, FH - 4, eh, es, lean);
     }
     for (let i = 0; i < count; i++) {
       const bx = FW * (.07 + .86 * i / (count - 1)) + (rnd() - .5) * 30, lean = (rnd() - .5) * .28, late = rnd() * .5;
       const ph = tall * (.95 + rnd() * .35), ps = days - late * Math.min(1, days / 4);
-      if (i % 2 === 0) lilyPlant(fx, bx, FH - 2, ph, ps, lean);
-      else rosePlant(fx, i % 4 === 1 ? 'red' : 'pink', bx, FH - 2, ph * .7, ps, lean);
+      bloomPlant(fx, i % 2 ? 'rose' : 'lily', bx, FH - 2, ph * .78, ps, lean);
     }
     grass(rnd, Math.round(FW / 9), tall * .3, ['#4a7230', '#3d6428', '#5a8438']);
     fx.strokeStyle = 'rgba(200, 230, 255, .75)'; fx.lineWidth = 1.6;
