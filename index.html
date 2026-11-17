@@ -1399,19 +1399,27 @@ book.addEventListener('touchend', e => {
       for (let k = 0; k < 4 + Math.floor(rnd() * 4); k++) {
         const fx = cx + (rnd() - .5) * r * 2.4, fy = cy + (rnd() - .6) * r * 1.2;
         x.strokeStyle = '#3c5a2a'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(fx, fy); x.lineTo(fx + (rnd() - .5) * 8, fy + r * .7); x.stroke();
-        const pick = rnd(), rose = IMG['rose-' + (b < .42 ? 'red' : 'pink') + '-' + (pick < .62 ? 3 : pick < .82 ? 1 : 2)], size = (8 + depth * 10 + rnd() * 4) * u;
+        const pick = rnd(), rose = IMG['rose-red-' + (pick < .62 ? 3 : pick < .82 ? 1 : 2)], size = (8 + depth * 10 + rnd() * 4) * u;
         if (rose && b < .6) stand(x, rose, fx, fy + size * 1.6, size * 3.3, (rnd() - .5) * .5, 1);
         else flower(x, fx, fy, size, kind, col, rnd);
       }
     });
-    // a bank of white lilies along the left side, always in bloom
+    // white lilies and red roses scattered together across the whole garden, always in bloom
     const lilyIm = IMG['lily-white'];
     if (lilyIm) {
       const r2 = seeded(909), bank = [];
-      for (let i = 0; i < 20; i++) bank.push([W * (.01 + r2() * .36), H * (.52 + r2() * .44), r2()]);
-      bank.sort((a, b) => a[1] - b[1]).forEach(([lx, ly, t]) => {
-        const depth = (ly / H - .52) / .44;
-        stand(x, lilyIm, lx, ly, (62 + depth * 96 + t * 26) * u, (t - .5) * .35, 1);
+      for (let i = 0; i < 46; i++) bank.push([W * (.01 + r2() * .98), H * (.5 + r2() * .46), r2(), r2()]);
+      bank.sort((a, b) => a[1] - b[1]).forEach(([lx, ly, t, kind], n) => {
+        const depth = (ly / H - .5) / .46, lean = (t - .5) * .35;
+        const rose = IMG['rose-red-' + (kind < .28 ? 3 : kind < .38 ? 1 : 2)];
+        if (kind < .46 && rose) {
+          const size = (38 + depth * 46 + t * 14) * u;
+          x.strokeStyle = '#2f5226'; x.lineWidth = Math.max(2, size * .06); x.lineCap = 'round';
+          x.beginPath(); x.moveTo(lx, ly); x.quadraticCurveTo(lx + lean * 20, ly + size * .5, lx - lean * 14, ly + size); x.stroke();
+          leaf(x, lx + lean * 6, ly + size * .45, size * .5, size * .2, 1.2, '#3f6d33');
+          leaf(x, lx + lean * 2, ly + size * .7, size * .5, size * .2, -1.2, '#2f5a2b');
+          stand(x, rose, lx, ly + size * .2, size, lean, 1);
+        } else stand(x, lilyIm, lx, ly, (62 + depth * 96 + t * 26) * u, lean, 1);
       });
     }
   }
