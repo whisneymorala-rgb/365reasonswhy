@@ -978,16 +978,65 @@ let busy = false;
 const favBtn = $('favBtn'), favCount = $('favCount'), favsBox = $('favs'), favsList = $('favsList'), favsEmpty = $('favsEmpty');
 let favs = new Set();
 try { favs = new Set(JSON.parse(localStorage.getItem('favorites365') || '[]')); } catch (e) {}
-function saveFavs() {
-  try { localStorage.setItem('favorites365', JSON.stringify([...favs])); } catch (e) {}
+function keepLocal() { try { localStorage.setItem('favorites365', JSON.stringify([...favs])); } catch (e) {} }
+function showFavs() {
   favCount.textContent = favs.size;
   favCount.hidden = favs.size === 0;
+  const mark = page.querySelector('.mark');
+  if (mark) mark.setAttribute('aria-pressed', String(favs.has(pos - 1)));
+  if (!favsBox.hidden) fillFavs();
 }
-function openFavs() {
+function saveFavs() { keepLocal(); showFavs(); pushFavs(); }
+
+/* When the reader is signed in and allowed to save, their favourites are also kept
+   with their account, so the same ribbons appear on every device they open the book on.
+   Otherwise they stay on this device only. */
+let favDoc = null, writing = false, writeAgain = false;
+function pushFavs() {
+  if (!favDoc) return;
+  if (writing) { writeAgain = true; return; }
+  writing = true;
+  favDoc.set({ pages: [...favs].sort((a, b) => a - b) })
+    .catch(() => { favDoc = null; })
+    .finally(() => { writing = false; if (writeAgain) { writeAgain = false; pushFavs(); } });
+}
+(async function syncFavs() {
+  if (!window.claude || !window.claude.use) return;
+  try {
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    if (!db || !user) return;
+    const uid = await user.id();
+    if (!uid) return;
+    const ref = db.doc('data/users/' + uid + '/favorites');
+    let merged = false;
+    try { merged = localStorage.getItem('favorites365synced') === '1'; } catch (e) {}
+    ref.onSnapshot(snap => {
+      if (snap.metadata.fromCache || snap.metadata.hasPendingWrites || writing || writeAgain) return;
+      const saved = snap.exists && Array.isArray(snap.data().pages) ? snap.data().pages.filter(Number.isInteger) : [];
+      favDoc = ref;
+      if (!merged) {
+        // first time on this device: keep what was already marked here as well
+        merged = true;
+        try { localStorage.setItem('favorites365synced', '1'); } catch (e) {}
+        const extra = [...favs].some(n => !saved.includes(n));
+        saved.forEach(n => favs.add(n));
+        keepLocal(); showFavs();
+        if (extra) pushFavs();
+        return;
+      }
+      favs = new Set(saved);
+      keepLocal(); showFavs();
+    }, () => { favDoc = null; });
+  } catch (e) {}
+})();
+function fillFavs() {
   const pages = [...favs].filter(n => REASONS[n - 1]).sort((a, b) => a - b);
   favsEmpty.hidden = pages.length > 0;
   favsList.innerHTML = pages.map(n =>
     `<li><button type="button" data-n="${n}"><span class="n">${n}</span><span class="t">${esc(REASONS[n - 1])}</span></button></li>`).join('');
+}
+function openFavs() {
+  fillFavs();
   favsBox.hidden = false;
   $('favsClose').focus();
 }
@@ -1164,7 +1213,7 @@ book.addEventListener('touchend', e => {
   });
 })();
 
-saveFavs();
+showFavs();
 render();
 </script>
 </body>
