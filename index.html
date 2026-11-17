@@ -584,7 +584,7 @@ body::after {
   <button type="button" id="next" aria-label="Next page" hidden>&#8250;</button>
   <button type="button" id="sound" aria-label="Turn music off" aria-pressed="true" data-tip="It Might Be You by Stephen Bishop, playing in the background" hidden>&#9834;</button>
   <button type="button" id="favBtn" aria-label="Favorites" hidden>&#9829;&#65038;<b id="favCount" hidden></b></button>
-  <button type="button" id="water" aria-label="Water the lilies" data-tip="Water the lilies"><i></i></button>
+  <button type="button" id="water" aria-label="Water the garden" data-tip="Water the garden"><i></i></button>
 </nav>
 <div class="favs" id="favs" role="dialog" aria-modal="true" aria-labelledby="favsTitle" hidden>
   <div class="card">
@@ -1249,10 +1249,10 @@ book.addEventListener('touchend', e => {
     x.setTransform(dpr, 0, 0, dpr, 0, 0);
     return [x, w, h];
   }
-  /* the flowers themselves are pictures: pink and white lilies, and three roses */
+  /* the flowers themselves are pictures: white lilies, and red and pink roses */
   const IMG = {};
   let repaintTimer;
-  ['lily-pink', 'lily-white', 'rose-1', 'rose-2', 'rose-3'].forEach(name => {
+  ['lily-white', 'rose-red-1', 'rose-red-2', 'rose-red-3', 'rose-pink-1', 'rose-pink-2', 'rose-pink-3'].forEach(name => {
     const im = new Image();
     im.onload = () => { IMG[name] = im; clearTimeout(repaintTimer); repaintTimer = setTimeout(() => paint(), 120); };
     im.src = 'flowers/' + name + '.webp';
@@ -1271,11 +1271,34 @@ book.addEventListener('touchend', e => {
     g.addColorStop(0, 'rgba(210, 235, 150, .22)'); g.addColorStop(.6, 'rgba(0, 0, 0, 0)'); g.addColorStop(1, 'rgba(0, 0, 0, .34)');
     x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, TAU); x.fill();
   }
-  // a lily plant: a drawn sprout and bud first, then the picture as it comes into bloom
-  function plant(x, name, bx, by, h, s, cols, lean) {
-    const im = IMG[name];
-    if (!im || s < 2.4) lily(x, bx, by, h * .8, im ? Math.min(s, 2.4) : s, cols, lean);
-    if (im && s > 2) stand(x, im, bx, by + h * .03, h * (.45 + .55 * clamp((s - 2) / 2, 0, 1)), lean * .6, clamp((s - 2) / .4, 0, 1));
+  // how big a plant is after s waterings: a young plant at 0, fully grown at 4
+  const grown = s => { const g = clamp(s / 4, 0, 1); return .24 + .76 * g * g * (3 - 2 * g); };
+  function lilyPlant(x, bx, by, h, s, lean) {
+    const im = IMG['lily-white'];
+    if (im) stand(x, im, bx, by + h * .03, h * grown(s), lean * .6, 1);
+    else lily(x, bx, by, h * .8, s, LILIES[0], lean);
+  }
+  // a rose bush: up to three stems with leaves, a bloom at the tip of each
+  const CANES = [[.05, 1, 3], [-.42, .72, 1], [.46, .8, 2]];
+  function rosePlant(x, tint, bx, by, h, s, lean) {
+    const k = grown(s), H = h * k, canes = k < .45 ? 1 : k < .7 ? 2 : 3;
+    for (let c = canes - 1; c >= 0; c--) {
+      const a = CANES[c][0] + lean, len = H * CANES[c][1];
+      const tx = bx + Math.sin(a) * len, ty = by - Math.cos(a) * len, mx = bx + Math.sin(a) * len * .25, my = by - len * .55;
+      x.strokeStyle = '#2f5226'; x.lineWidth = clamp(H * .035, 2, 7); x.lineCap = 'round';
+      x.beginPath(); x.moveTo(bx, by); x.quadraticCurveTo(mx, my, tx, ty); x.stroke();
+      for (let j = 0; j < 4; j++) {
+        const t = .25 + j * .17, u = 1 - t;
+        const px = u * u * bx + 2 * u * t * mx + t * t * tx, py = u * u * by + 2 * u * t * my + t * t * ty;
+        leaf(x, px, py, H * .26, H * .1, (j % 2 ? 1.15 : -1.15) + a, j % 2 ? '#3f6d33' : '#2f5a2b');
+        leaf(x, px, py, H * .26, H * .014, (j % 2 ? 1.15 : -1.15) + a, 'rgba(190, 220, 150, .35)');
+      }
+      // young canes carry a closed bud; the leading cane opens fully once the bush is grown
+      const im = IMG['rose-' + tint + '-' + (c === 0 && k > .75 ? 3 : CANES[c][2] === 3 ? 1 : CANES[c][2])];
+      const size = H * (c === 0 ? .56 : .42);
+      if (im) stand(x, im, tx, ty + size * .55, size, a * .5, 1);
+      else flower(x, tx, ty, size * .4, 1, tint === 'red' ? '#b3202c' : '#eaa6b8', () => .3);
+    }
   }
   const disc = (x, cx, cy, r, col) => { x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, TAU); x.fill(); };
   function leaf(x, bx, by, len, wid, ang, col) {
@@ -1376,7 +1399,7 @@ book.addEventListener('touchend', e => {
       for (let k = 0; k < 4 + Math.floor(rnd() * 4); k++) {
         const fx = cx + (rnd() - .5) * r * 2.4, fy = cy + (rnd() - .6) * r * 1.2;
         x.strokeStyle = '#3c5a2a'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(fx, fy); x.lineTo(fx + (rnd() - .5) * 8, fy + r * .7); x.stroke();
-        const rose = IMG['rose-' + (1 + Math.floor(rnd() * 3))], size = (7 + depth * 9 + rnd() * 4) * u;
+        const rose = IMG['rose-' + (b < .3 ? 'red' : 'pink') + '-' + (1 + Math.floor(rnd() * 3))], size = (7 + depth * 9 + rnd() * 4) * u;
         if (rose && b < .6) stand(x, rose, fx, fy + size * 1.5, size * 3, (rnd() - .5) * .7, 1);
         else flower(x, fx, fy, size, kind, col, rnd);
       }
@@ -1393,17 +1416,21 @@ book.addEventListener('touchend', e => {
   }
   function drawFront(days) {
     fx.clearRect(0, 0, FW, FH);
-    const rnd = seeded(365), tall = clamp(FH * .27, 130, 240), count = FW < 600 ? 5 : 7;
+    const rnd = seeded(365), tall = clamp(FH * .33, 150, 300), count = FW < 600 ? 5 : 7;
     fx.lineCap = 'round';
     grass(rnd, Math.round(FW / 6), tall * .45, ['#2c4a1e', '#36582a', '#24401a']);
     const extra = clamp(days - 4, 0, 90);               // after full bloom, each day adds another lily
     for (let e = 0; e < Math.ceil(extra); e++) {
       const ex = rnd() * FW, eh = tall * (.3 + rnd() * .38), lean = (rnd() - .5) * .3, cols = LILIES[1 + (e % 3)];
-      plant(fx, e % 2 ? 'lily-white' : 'lily-pink', ex, FH - 4, eh * 1.25, 4 * clamp(extra - e, 0, 1), cols, lean);
+      const es = 4 * clamp(extra - e, 0, 1);
+      if (e % 3 === 0) lilyPlant(fx, ex, FH - 4, eh * 1.2, es, lean);
+      else rosePlant(fx, e % 3 === 1 ? 'red' : 'pink', ex, FH - 4, eh * 1.2, es, lean);
     }
     for (let i = 0; i < count; i++) {
       const bx = FW * (.07 + .86 * i / (count - 1)) + (rnd() - .5) * 30, lean = (rnd() - .5) * .28, late = rnd() * .5;
-      plant(fx, i % 2 ? 'lily-pink' : 'lily-white', bx, FH - 2, tall * (.95 + rnd() * .4), days - late * Math.min(1, days / 4), LILIES[i % 2], lean);
+      const ph = tall * (.95 + rnd() * .35), ps = days - late * Math.min(1, days / 4);
+      if (i % 2 === 0) lilyPlant(fx, bx, FH - 2, ph, ps, lean);
+      else rosePlant(fx, i % 4 === 1 ? 'red' : 'pink', bx, FH - 2, ph * .7, ps, lean);
     }
     grass(rnd, Math.round(FW / 9), tall * .3, ['#4a7230', '#3d6428', '#5a8438']);
     fx.strokeStyle = 'rgba(200, 230, 255, .75)'; fx.lineWidth = 1.6;
@@ -1424,16 +1451,16 @@ book.addEventListener('touchend', e => {
   function showButton() {
     const done = garden.last === today();
     waterBtn.classList.toggle('done', done);
-    waterBtn.dataset.tip = done ? 'Watered today. Come back tomorrow.' : 'Water the lilies';
+    waterBtn.dataset.tip = done ? 'Watered today. Come back tomorrow.' : 'Water the garden';
   }
   let raining = false;
   waterBtn.addEventListener('click', () => {
     if (raining) return;
-    if (garden.last === today()) return say('The lilies have had their water today. Come back tomorrow.');
+    if (garden.last === today()) return say('The garden has had its water today. Come back tomorrow.');
     const from = garden.days;
     garden = { days: from + 1, last: today() };
     keepGarden(); pushFavs(); showButton();
-    say(garden.days === 1 ? 'Watered. The lilies will grow a little every day you water them.'
+    say(garden.days === 1 ? 'Watered. The lilies and roses grow bigger every day you water them.'
       : 'Watered. Day ' + garden.days + ' in the garden.');
     if (calm.matches) return drawFront(garden.days);
     raining = true;
