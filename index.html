@@ -1249,6 +1249,34 @@ book.addEventListener('touchend', e => {
     x.setTransform(dpr, 0, 0, dpr, 0, 0);
     return [x, w, h];
   }
+  /* the flowers themselves are pictures: pink and white lilies, and three roses */
+  const IMG = {};
+  let repaintTimer;
+  ['lily-pink', 'lily-white', 'rose-1', 'rose-2', 'rose-3'].forEach(name => {
+    const im = new Image();
+    im.onload = () => { IMG[name] = im; clearTimeout(repaintTimer); repaintTimer = setTimeout(() => paint(), 120); };
+    im.src = 'flowers/' + name + '.webp';
+  });
+  // a picture standing on its base point, leaning a little
+  function stand(x, im, bx, by, h, lean, alpha) {
+    const w = h * im.width / im.height;
+    x.save(); x.translate(bx, by); x.rotate(lean); x.globalAlpha = alpha;
+    x.drawImage(im, -w / 2, -h, w, h);
+    x.restore();
+  }
+  // a round shrub with light falling from the upper left
+  function ball(x, cx, cy, r, col) {
+    disc(x, cx, cy, r, col);
+    const g = x.createRadialGradient(cx - r * .4, cy - r * .45, r * .1, cx, cy, r);
+    g.addColorStop(0, 'rgba(210, 235, 150, .22)'); g.addColorStop(.6, 'rgba(0, 0, 0, 0)'); g.addColorStop(1, 'rgba(0, 0, 0, .34)');
+    x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, TAU); x.fill();
+  }
+  // a lily plant: a drawn sprout and bud first, then the picture as it comes into bloom
+  function plant(x, name, bx, by, h, s, cols, lean) {
+    const im = IMG[name];
+    if (!im || s < 2.4) lily(x, bx, by, h * .8, im ? Math.min(s, 2.4) : s, cols, lean);
+    if (im && s > 2) stand(x, im, bx, by + h * .03, h * (.45 + .55 * clamp((s - 2) / 2, 0, 1)), lean * .6, clamp((s - 2) / .4, 0, 1));
+  }
   const disc = (x, cx, cy, r, col) => { x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, TAU); x.fill(); };
   function leaf(x, bx, by, len, wid, ang, col) {
     x.save(); x.translate(bx, by); x.rotate(ang);
@@ -1343,12 +1371,14 @@ book.addEventListener('touchend', e => {
     for (let i = 0; i < 46; i++) clumps.push([rnd() * W, H * (.46 + rnd() * .44), rnd(), rnd()]);
     clumps.sort((a, b) => a[1] - b[1]).forEach(([cx, cy, a, b]) => {
       const depth = (cy / H - .46) / .44, r = (26 + depth * 44) * u;
-      for (let k = 0; k < 7; k++) disc(x, cx + (rnd() - .5) * r * 2.2, cy + (rnd() - .3) * r, r * (.5 + rnd() * .5), GREENS[Math.floor(rnd() * 4)]);
+      for (let k = 0; k < 7; k++) ball(x, cx + (rnd() - .5) * r * 2.2, cy + (rnd() - .3) * r, r * (.5 + rnd() * .5), GREENS[Math.floor(rnd() * 4)]);
       const col = PETALS[Math.floor(a * PETALS.length)], kind = Math.floor(b * 3);
       for (let k = 0; k < 4 + Math.floor(rnd() * 4); k++) {
         const fx = cx + (rnd() - .5) * r * 2.4, fy = cy + (rnd() - .6) * r * 1.2;
         x.strokeStyle = '#3c5a2a'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(fx, fy); x.lineTo(fx + (rnd() - .5) * 8, fy + r * .7); x.stroke();
-        flower(x, fx, fy, (7 + depth * 9 + rnd() * 4) * u, kind, col, rnd);
+        const rose = IMG['rose-' + (1 + Math.floor(rnd() * 3))], size = (7 + depth * 9 + rnd() * 4) * u;
+        if (rose && b < .6) stand(x, rose, fx, fy + size * 1.5, size * 3, (rnd() - .5) * .7, 1);
+        else flower(x, fx, fy, size, kind, col, rnd);
       }
     });
   }
@@ -1369,11 +1399,11 @@ book.addEventListener('touchend', e => {
     const extra = clamp(days - 4, 0, 90);               // after full bloom, each day adds another lily
     for (let e = 0; e < Math.ceil(extra); e++) {
       const ex = rnd() * FW, eh = tall * (.3 + rnd() * .38), lean = (rnd() - .5) * .3, cols = LILIES[1 + (e % 3)];
-      lily(fx, ex, FH - 4, eh, 4 * clamp(extra - e, 0, 1), cols, lean);
+      plant(fx, e % 2 ? 'lily-white' : 'lily-pink', ex, FH - 4, eh * 1.25, 4 * clamp(extra - e, 0, 1), cols, lean);
     }
     for (let i = 0; i < count; i++) {
       const bx = FW * (.07 + .86 * i / (count - 1)) + (rnd() - .5) * 30, lean = (rnd() - .5) * .28, late = rnd() * .5;
-      lily(fx, bx, FH - 2, tall * (.82 + rnd() * .36), days - late * Math.min(1, days / 4), LILIES[i % 2], lean);
+      plant(fx, i % 2 ? 'lily-pink' : 'lily-white', bx, FH - 2, tall * (.95 + rnd() * .4), days - late * Math.min(1, days / 4), LILIES[i % 2], lean);
     }
     grass(rnd, Math.round(FW / 9), tall * .3, ['#4a7230', '#3d6428', '#5a8438']);
     fx.strokeStyle = 'rgba(200, 230, 255, .75)'; fx.lineWidth = 1.6;
@@ -1382,7 +1412,7 @@ book.addEventListener('touchend', e => {
   function paint() {
     drawFar(); drawMid();
     [fx, FW, FH] = fit(front);
-    drawFront(garden.days);
+    if (!raining) drawFront(garden.days);
   }
 
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
