@@ -42,11 +42,10 @@ html, body { height: 100%; }
 [hidden] { display: none !important; }
 body {
   margin: 0;
-  background-color: var(--table);
+  background-color: #141d0c;
   background-image:
-    radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, .78) 100%),
-    repeating-linear-gradient(0deg, transparent 0 138px, var(--table-line) 138px 141px),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='282'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006 .35' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .33 0 0 0 0 .16 .9 0 0 0 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, .6) 100%),
+    linear-gradient(180deg, #24332f 0%, #4f5a40 20%, #8c7b47 36%, #46552a 50%, #1f2e14 76%, #0f1809 100%);
   color: var(--ui);
   font-family: var(--font-print);
   font-size: 16px;
@@ -62,8 +61,8 @@ body {
 /* candlelight that wavers, and the grain of an old photograph over everything */
 body::before {
   content: ""; position: fixed; inset: 0; pointer-events: none;
-  background: radial-gradient(circle at 84% 6%, var(--candle), transparent 52%),
-    radial-gradient(circle at 10% 95%, rgba(255, 176, 84, .07), transparent 40%);
+  background: radial-gradient(ellipse 60% 34% at 50% 34%, rgba(255, 214, 140, .38), transparent 70%),
+    radial-gradient(circle at 84% 6%, var(--candle), transparent 45%);
   animation: flicker 7s ease-in-out infinite;
 }
 body::after {
@@ -78,7 +77,32 @@ body::after {
   47% { opacity: .7; } 63% { opacity: .92; } 80% { opacity: .82; }
 }
 
-/* ---------- things lying on the desk ---------- */
+/* ---------- the garden: three painted layers at different depths ---------- */
+.gl {
+  position: absolute; left: -24px; top: -24px; width: calc(100% + 48px); height: calc(100% + 48px);
+  transform: translate3d(calc(var(--mx, 0) * var(--d) * 1px), calc(var(--my, 0) * var(--d) * 1px), 0);
+  transition: transform .5s ease-out; will-change: transform;
+}
+.gl canvas { display: block; width: 100%; height: 100%; transform-origin: 50% 100%; }
+.gl.far { --d: 5; filter: blur(2.5px); }
+.gl.mid { --d: 11; }
+.gl.mid canvas { animation: sway 9s ease-in-out infinite alternate; }
+.gl.front { --d: 20; }
+.gl.front canvas { animation: sway 6s ease-in-out infinite alternate-reverse; }
+@keyframes sway { from { transform: skewX(-.5deg); } to { transform: skewX(.5deg); } }
+@media (prefers-reduced-motion: reduce) { .gl { transition: none; } .gl canvas { animation: none !important; } }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 35;
+  transform: translate(-50%, 8px); max-width: calc(100% - 32px); box-sizing: border-box;
+  padding: 9px 16px; text-align: center;
+  font-style: italic; font-size: 16px; line-height: 1.3; color: var(--ui);
+  background: rgba(20, 11, 5, .94); border: 1px solid var(--gilt-dim); border-radius: 4px;
+  opacity: 0; pointer-events: none; transition: opacity .4s ease, transform .4s ease;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- things lying in the garden ---------- */
 .desk { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
 .dried { position: absolute; inset: 0; filter: sepia(.5) saturate(.75) brightness(.9); }
 .petal {
@@ -463,13 +487,13 @@ body::after {
   display: flex; align-items: center; justify-content: center; gap: 14px;
   padding-block: 10px 16px;
   position: relative;
-  font-style: italic; color: var(--ui-dim);
+  font-style: italic; color: var(--ui); text-shadow: 0 1px 3px #000, 0 0 8px #000;
   min-height: 44px;
 }
 .controls button {
   font: inherit; font-style: normal; font-size: 22px; line-height: 1;
   width: 44px; height: 44px;
-  color: var(--ui); background: rgba(0, 0, 0, .4);
+  color: var(--ui); background: rgba(16, 10, 4, .74);
   border: 1px solid var(--gilt-dim); border-radius: 50%;
   cursor: pointer;
 }
@@ -477,7 +501,7 @@ body::after {
 .controls button:disabled { opacity: .3; cursor: default; }
 .controls #sound { font-size: 18px; margin-left: 6px; position: relative; }
 /* the song title appears when the pointer rests on the music button */
-.controls #sound::after {
+.controls #sound::after, .controls #water::after {
   content: attr(data-tip);
   position: absolute; right: 0; bottom: calc(100% + 10px);
   padding: 7px 12px; white-space: nowrap;
@@ -487,17 +511,25 @@ body::after {
   opacity: 0; transform: translateY(4px); pointer-events: none;
   transition: opacity .25s ease, transform .25s ease;
 }
-.controls #sound:hover::after, .controls #sound:focus-visible::after { opacity: 1; transform: none; }
+.controls #sound:hover::after, .controls #sound:focus-visible::after,
+.controls #water:hover::after, .controls #water:focus-visible::after { opacity: 1; transform: none; }
+.controls #water { position: relative; }
+.controls #water i {
+  display: block; width: 13px; height: 13px; margin: 3px auto 0;
+  background: linear-gradient(135deg, #cfe6f2, #6fa3c2);
+  border-radius: 0 50% 50% 50%; transform: rotate(45deg);
+}
+.controls #water.done i { opacity: .4; }
 .controls #sound[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
 .controls label { display: flex; align-items: center; gap: 8px; }
 .controls input {
   font: inherit; font-style: normal; text-align: center;
   width: 4.2em; padding: 6px 4px;
-  color: var(--ui); background: rgba(0, 0, 0, .4);
+  color: var(--ui); background: rgba(16, 10, 4, .74);
   border: 1px solid var(--gilt-dim); border-radius: 4px;
 }
 .controls :focus-visible { outline: 2px solid var(--gilt); outline-offset: 2px; }
-.hint { font-size: 17px; }
+.hint { font-size: 17px; color: var(--ui); text-shadow: 0 1px 3px #000, 0 0 10px #000; }
 .controls #redo {
   width: auto; height: 40px; padding: 0 18px;
   font-size: 16px; font-style: italic; border-radius: 4px;
@@ -514,18 +546,21 @@ body::after {
   .controls label { gap: 5px; }
   .controls input { width: 3.3em; }
   .controls #sound { margin-left: 0; }
+  .controls label .w { display: none; }
 }
 </style>
 </head>
 <body>
 
 <div class="desk" aria-hidden="true">
-  <div class="dried" id="dried"></div>
+  <div class="gl far"><canvas id="gFar"></canvas></div>
+  <div class="gl mid"><canvas id="gMid"></canvas></div>
   <div class="letter">My dearest Leah,</div>
   <div class="letter two">always yours</div>
   <div class="seal">L</div>
-  <div class="key"><i class="bow"></i><i class="shaft"></i><i class="bit"></i><i class="bit b2"></i></div>
+  <div class="gl front"><canvas id="gFront"></canvas></div>
 </div>
+<div class="toast" id="toast" role="status"></div>
 <div class="sky" id="sky" aria-hidden="true"></div>
 
 <main class="stage">
@@ -541,7 +576,7 @@ body::after {
 <nav class="controls" aria-label="Book pages">
   <span class="hint" id="hint">Tap the cover to open the book</span>
   <button type="button" id="prev" aria-label="Previous page" hidden>&#8249;</button>
-  <label id="jump" hidden>Page
+  <label id="jump" hidden><span class="w">Page</span>
     <input id="pageNo" type="number" min="1" max="365" inputmode="numeric" placeholder="&ndash;">
     of 365
   </label>
@@ -549,6 +584,7 @@ body::after {
   <button type="button" id="next" aria-label="Next page" hidden>&#8250;</button>
   <button type="button" id="sound" aria-label="Turn music off" aria-pressed="true" data-tip="It Might Be You by Stephen Bishop, playing in the background" hidden>&#9834;</button>
   <button type="button" id="favBtn" aria-label="Favorites" hidden>&#9829;&#65038;<b id="favCount" hidden></b></button>
+  <button type="button" id="water" aria-label="Water the lilies" data-tip="Water the lilies"><i></i></button>
 </nav>
 <div class="favs" id="favs" role="dialog" aria-modal="true" aria-labelledby="favsTitle" hidden>
   <div class="card">
@@ -991,12 +1027,26 @@ function saveFavs() { keepLocal(); showFavs(); pushFavs(); }
 /* When the reader is signed in and allowed to save, their favourites are also kept
    with their account, so the same ribbons appear on every device they open the book on.
    Otherwise they stay on this device only. */
+/* the garden remembers how many days it has been watered */
+let garden = { days: 0, last: '' }, gardenChanged = () => {};
+try {
+  const g = JSON.parse(localStorage.getItem('garden365') || 'null');
+  if (g && Number.isInteger(g.days) && g.days >= 0) garden = { days: g.days, last: String(g.last || '') };
+} catch (e) {}
+function keepGarden() { try { localStorage.setItem('garden365', JSON.stringify(garden)); } catch (e) {} }
+// takes the saved garden if it is further along; says whether this device is ahead instead
+function mergeGarden(g) {
+  const days = g && Number.isInteger(g.days) ? g.days : 0;
+  if (days > garden.days) { garden = { days, last: String(g.last || '') }; keepGarden(); gardenChanged(); }
+  return garden.days > days;
+}
+
 let favDoc = null, writing = false, writeAgain = false;
 function pushFavs() {
   if (!favDoc) return;
   if (writing) { writeAgain = true; return; }
   writing = true;
-  favDoc.set({ pages: [...favs].sort((a, b) => a - b) })
+  favDoc.set({ pages: [...favs].sort((a, b) => a - b), garden: { days: garden.days, last: garden.last } })
     .catch(() => { favDoc = null; })
     .finally(() => { writing = false; if (writeAgain) { writeAgain = false; pushFavs(); } });
 }
@@ -1014,6 +1064,7 @@ function pushFavs() {
       if (snap.metadata.fromCache || snap.metadata.hasPendingWrites || writing || writeAgain) return;
       const saved = snap.exists && Array.isArray(snap.data().pages) ? snap.data().pages.filter(Number.isInteger) : [];
       favDoc = ref;
+      const ahead = mergeGarden(snap.exists ? snap.data().garden : null);
       if (!merged) {
         // first time on this device: keep what was already marked here as well
         merged = true;
@@ -1021,11 +1072,12 @@ function pushFavs() {
         const extra = [...favs].some(n => !saved.includes(n));
         saved.forEach(n => favs.add(n));
         keepLocal(); showFavs();
-        if (extra) pushFavs();
+        if (extra || ahead) pushFavs();
         return;
       }
       favs = new Set(saved);
       keepLocal(); showFavs();
+      if (ahead) pushFavs();
     }, () => { favDoc = null; });
   } catch (e) {}
 })();
@@ -1160,43 +1212,6 @@ book.addEventListener('touchend', e => {
   if (Math.abs(dx) > 45) { e.preventDefault(); step(dx < 0 ? 1 : -1); }
 });
 
-/* dried flowers and loose petals on the desk (same arrangement every visit) */
-(function scatter() {
-  let seed = 365;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const hues = [['#a05a6c', '#6e3344'], ['#d39a2a', '#96640f'], ['#5b58ad', '#35346f'], ['#b9788a', '#7a4152'], ['#6d7a45', '#3f4a26']];
-  const host = $('dried');
-  const petal = (w, hue) => {
-    const p = document.createElement('div');
-    p.className = 'petal';
-    p.style.width = w + 'px';
-    p.style.height = w * (.45 + rnd() * .25) + 'px';
-    p.style.background = `radial-gradient(ellipse at 30% 40%, ${hue[0]}, ${hue[1]})`;
-    return p;
-  };
-  for (let f = 0; f < 12; f++) {
-    const flower = document.createElement('div');
-    flower.className = 'flower';
-    const edge = rnd() < .5;
-    flower.style.left = (edge ? (rnd() < .5 ? rnd() * 16 : 84 + rnd() * 16) : rnd() * 100) + '%';
-    flower.style.top = (edge ? rnd() * 100 : (rnd() < .5 ? rnd() * 13 : 87 + rnd() * 13)) + '%';
-    const hue = hues[Math.floor(rnd() * 4)], count = 5 + Math.floor(rnd() * 3), w = 14 + rnd() * 12, turn0 = rnd() * 360;
-    for (let k = 0; k < count; k++) {
-      const p = petal(w, hue);
-      p.style.transform = `translateY(-50%) rotate(${turn0 + k * 360 / count + rnd() * 14}deg)`;
-      flower.appendChild(p);
-    }
-    flower.appendChild(document.createElement('i'));
-    host.appendChild(flower);
-  }
-  for (let k = 0; k < 34; k++) {
-    const p = petal(9 + rnd() * 16, hues[Math.floor(rnd() * hues.length)]);
-    p.style.left = rnd() * 100 + '%';
-    p.style.top = rnd() * 100 + '%';
-    p.style.transform = `rotate(${rnd() * 360}deg)`;
-    host.appendChild(p);
-  }
-})();
 
 /* three butterflies in faded amber, rose and dusk blue */
 (function butterflies() {
@@ -1211,6 +1226,214 @@ book.addEventListener('touchend', e => {
     b.innerHTML = `<div class="bob"><div class="wing l">${wing(fill, edge)}</div><div class="wing r">${wing(fill, edge)}</div><i class="thorax"></i></div>`;
     $('sky').appendChild(b);
   });
+})();
+
+/* ============================================================
+   THE GARDEN — painted once on three canvases; the lilies along the
+   bottom grow a little every day they are watered.
+   ============================================================ */
+(function gardenScene() {
+  const far = $('gFar'), mid = $('gMid'), front = $('gFront');
+  const waterBtn = $('water'), toast = $('toast'), desk = far.closest('.desk');
+  const TAU = Math.PI * 2;
+  const seeded = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const PETALS = ['#e8b7c0', '#f3e6c8', '#b9a8d8', '#e9c46a', '#d98a7a', '#f7f1e3', '#c97f93'];
+  const GREENS = ['#2f4a22', '#3c5a2a', '#27401c', '#4a6a30'];
+  const LILIES = [['#fffaf2', '#f0aebf'], ['#f8cdd6', '#d4668a'], ['#f8ecb4', '#e0a437'], ['#f6b98c', '#d7602c']];
+
+  function fit(c) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), w = c.offsetWidth, h = c.offsetHeight;
+    c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+    const x = c.getContext('2d');
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return [x, w, h];
+  }
+  const disc = (x, cx, cy, r, col) => { x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, TAU); x.fill(); };
+  function leaf(x, bx, by, len, wid, ang, col) {
+    x.save(); x.translate(bx, by); x.rotate(ang);
+    x.fillStyle = col; x.beginPath(); x.moveTo(0, 0);
+    x.quadraticCurveTo(wid, -len * .5, 0, -len); x.quadraticCurveTo(-wid, -len * .5, 0, 0); x.fill();
+    x.restore();
+  }
+  function flower(x, cx, cy, r, kind, col, rnd) {
+    x.save(); x.translate(cx, cy); x.rotate(rnd() * TAU);
+    if (kind === 0) {                                   // daisy
+      x.fillStyle = col;
+      for (let k = 0; k < 11; k++) { x.rotate(TAU / 11); x.beginPath(); x.ellipse(r * .6, 0, r * .42, r * .16, 0, 0, TAU); x.fill(); }
+      disc(x, 0, 0, r * .28, '#c9952c');
+    } else if (kind === 1) {                            // rose
+      disc(x, 0, 0, r, col);
+      x.strokeStyle = 'rgba(70, 20, 35, .3)'; x.lineWidth = Math.max(1, r * .1);
+      for (let k = 1; k < 4; k++) { x.beginPath(); x.arc(0, 0, r * (1 - k * .24), k * 1.3, k * 1.3 + 4.4); x.stroke(); }
+      disc(x, -r * .25, -r * .25, r * .3, 'rgba(255, 255, 255, .18)');
+    } else {                                            // five-petal blossom
+      for (let k = 0; k < 5; k++) { x.rotate(TAU / 5); disc(x, r * .5, 0, r * .5, col); }
+      disc(x, 0, 0, r * .22, '#e9c46a');
+    }
+    x.restore();
+  }
+
+  /* one lily: s runs from 0 (a sprout) to 4 (in full bloom) */
+  function lily(x, bx, by, h, s, cols, lean) {
+    s = clamp(s, 0, 4);
+    const hh = h * (.14 + .86 * s / 4), tx = bx + lean * hh, ty = by - hh, mx = bx + lean * hh * .2, my = by - hh * .55;
+    x.strokeStyle = '#4c7433'; x.lineWidth = clamp(h * .022, 2, 4.5); x.lineCap = 'round';
+    x.beginPath(); x.moveTo(bx, by); x.quadraticCurveTo(mx, my, tx, ty); x.stroke();
+    const n = Math.round(2 + s * 1.6);
+    for (let j = 0; j < n; j++) {
+      const t = (j + .6) / (n + .6) * .78, u = 1 - t;
+      const px = u * u * bx + 2 * u * t * mx + t * t * tx, py = u * u * by + 2 * u * t * my + t * t * ty;
+      leaf(x, px, py, hh * .34 * (1 - t * .45) + 10, clamp(h * .035, 3, 8), (j % 2 ? 1 : -1) * (.75 + t * .5) + lean, j % 2 ? '#5b8a3c' : '#47722f');
+    }
+    if (s < 1.2) return;
+    const L = h * .21 * clamp((s - 1.2) / 1.6, .35, 1), open = clamp((s - 2.6) / 1.4, 0, 1);
+    x.save(); x.translate(tx, ty); x.rotate(lean * .9);
+    if (open < .03) {                                   // still a bud
+      x.fillStyle = cols[0]; x.beginPath(); x.ellipse(0, -L * .45, L * .2, L * .55, 0, 0, TAU); x.fill();
+      x.fillStyle = 'rgba(90, 138, 60, .55)'; x.beginPath(); x.ellipse(0, -L * .2, L * .2, L * .3, 0, 0, TAU); x.fill();
+    } else {
+      x.scale(1, .8);
+      const len = L * (.4 + .6 * open), wid = L * (.06 + .26 * open);
+      for (let k = 0; k < 6; k++) {
+        const kk = k < 3 ? k * 2 + 1 : (k - 3) * 2;     // three petals behind, three in front
+        x.save(); x.rotate(kk * TAU / 6);
+        const g = x.createLinearGradient(0, 0, 0, -len);
+        g.addColorStop(0, cols[1]); g.addColorStop(.55, cols[0]); g.addColorStop(1, cols[0]);
+        x.fillStyle = g; x.beginPath(); x.moveTo(0, 0);
+        x.bezierCurveTo(wid, -len * .25, wid * .9, -len * .8, 0, -len);
+        x.bezierCurveTo(-wid * .9, -len * .8, -wid, -len * .25, 0, 0); x.fill();
+        x.strokeStyle = cols[1]; x.globalAlpha = .5; x.lineWidth = 1;
+        x.beginPath(); x.moveTo(0, -len * .1); x.lineTo(0, -len * .8); x.stroke();
+        x.globalAlpha = 1; x.restore();
+      }
+      for (let k = 0; k < 6; k++) {                     // stamens
+        const a = k * TAU / 6 + .5, r = L * .42 * open;
+        x.strokeStyle = '#a9c47a'; x.lineWidth = 1.2;
+        x.beginPath(); x.moveTo(0, 0); x.lineTo(Math.cos(a) * r, Math.sin(a) * r); x.stroke();
+        x.fillStyle = '#9a4f17'; x.beginPath(); x.ellipse(Math.cos(a) * r, Math.sin(a) * r, L * .05, L * .025, a, 0, TAU); x.fill();
+      }
+    }
+    x.restore();
+  }
+
+  function drawFar() {
+    const [x, W, H] = fit(far), rnd = seeded(11);
+    for (let i = 0; i < 60; i++) disc(x, rnd() * W, H * (.4 + rnd() * .14), 30 + rnd() * 70, GREENS[i % 4]);
+    [[-.02, -.02], [1.02, -.02], [.18, -.08], [.82, -.08]].forEach(([fx, fy], t) => {     // tree crowns framing the top
+      for (let i = 0; i < 26; i++) disc(x, fx * W + (rnd() - .5) * W * .34, fy * H + rnd() * H * (t < 2 ? .3 : .16), 24 + rnd() * 60, i % 3 ? '#1c2c18' : '#263a1e');
+    });
+    for (let i = 0; i < 260; i++) {                     // far-off blossom, out of focus
+      x.globalAlpha = .35 + rnd() * .45;
+      disc(x, rnd() * W, H * (.3 + rnd() * .5), 2 + rnd() * 6, PETALS[Math.floor(rnd() * PETALS.length)]);
+    }
+    x.globalAlpha = 1;
+  }
+
+  function drawMid() {
+    const [x, W, H] = fit(mid), rnd = seeded(77), u = clamp(W / 900, .7, 1.5);
+    for (let i = 0; i < 9; i++) {                       // wisteria hanging from the trees
+      const sx = rnd() * W, len = H * (.08 + rnd() * .16);
+      for (let k = 0; k < 26; k++) {
+        const t = k / 26;
+        disc(x, sx + (rnd() - .5) * 20 * u * (1 - t * .7), -10 + t * len + rnd() * 6, (5.5 - t * 3.5) * u, k % 3 ? '#a996cf' : '#cdbfe6');
+      }
+    }
+    const clumps = [];
+    for (let i = 0; i < 46; i++) clumps.push([rnd() * W, H * (.46 + rnd() * .44), rnd(), rnd()]);
+    clumps.sort((a, b) => a[1] - b[1]).forEach(([cx, cy, a, b]) => {
+      const depth = (cy / H - .46) / .44, r = (26 + depth * 44) * u;
+      for (let k = 0; k < 7; k++) disc(x, cx + (rnd() - .5) * r * 2.2, cy + (rnd() - .3) * r, r * (.5 + rnd() * .5), GREENS[Math.floor(rnd() * 4)]);
+      const col = PETALS[Math.floor(a * PETALS.length)], kind = Math.floor(b * 3);
+      for (let k = 0; k < 4 + Math.floor(rnd() * 4); k++) {
+        const fx = cx + (rnd() - .5) * r * 2.4, fy = cy + (rnd() - .6) * r * 1.2;
+        x.strokeStyle = '#3c5a2a'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(fx, fy); x.lineTo(fx + (rnd() - .5) * 8, fy + r * .7); x.stroke();
+        flower(x, fx, fy, (7 + depth * 9 + rnd() * 4) * u, kind, col, rnd);
+      }
+    });
+  }
+
+  let fx, FW = 0, FH = 0, drops = [];
+  function grass(rnd, n, tall, cols) {
+    for (let i = 0; i < n; i++) {
+      const bx = rnd() * FW, hh = tall * (.4 + rnd() * .6), bend = (rnd() - .5) * 26;
+      fx.strokeStyle = cols[i % cols.length]; fx.lineWidth = 1.5 + rnd() * 2;
+      fx.beginPath(); fx.moveTo(bx, FH); fx.quadraticCurveTo(bx + bend * .3, FH - hh * .6, bx + bend, FH - hh); fx.stroke();
+    }
+  }
+  function drawFront(days) {
+    fx.clearRect(0, 0, FW, FH);
+    const rnd = seeded(365), tall = clamp(FH * .27, 130, 240), count = FW < 600 ? 5 : 7;
+    fx.lineCap = 'round';
+    grass(rnd, Math.round(FW / 6), tall * .45, ['#2c4a1e', '#36582a', '#24401a']);
+    const extra = clamp(days - 4, 0, 90);               // after full bloom, each day adds another lily
+    for (let e = 0; e < Math.ceil(extra); e++) {
+      const ex = rnd() * FW, eh = tall * (.3 + rnd() * .38), lean = (rnd() - .5) * .3, cols = LILIES[1 + (e % 3)];
+      lily(fx, ex, FH - 4, eh, 4 * clamp(extra - e, 0, 1), cols, lean);
+    }
+    for (let i = 0; i < count; i++) {
+      const bx = FW * (.07 + .86 * i / (count - 1)) + (rnd() - .5) * 30, lean = (rnd() - .5) * .28, late = rnd() * .5;
+      lily(fx, bx, FH - 2, tall * (.82 + rnd() * .36), days - late * Math.min(1, days / 4), LILIES[i % 2], lean);
+    }
+    grass(rnd, Math.round(FW / 9), tall * .3, ['#4a7230', '#3d6428', '#5a8438']);
+    fx.strokeStyle = 'rgba(200, 230, 255, .75)'; fx.lineWidth = 1.6;
+    drops.forEach(d => { fx.beginPath(); fx.moveTo(d.x, d.y); fx.lineTo(d.x - 2, d.y - d.len); fx.stroke(); });
+  }
+  function paint() {
+    drawFar(); drawMid();
+    [fx, FW, FH] = fit(front);
+    drawFront(garden.days);
+  }
+
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  let toastTimer;
+  function say(text) {
+    toast.textContent = text; toast.classList.add('on');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('on'), 4200);
+  }
+  function showButton() {
+    const done = garden.last === today();
+    waterBtn.classList.toggle('done', done);
+    waterBtn.dataset.tip = done ? 'Watered today. Come back tomorrow.' : 'Water the lilies';
+  }
+  let raining = false;
+  waterBtn.addEventListener('click', () => {
+    if (raining) return;
+    if (garden.last === today()) return say('The lilies have had their water today. Come back tomorrow.');
+    const from = garden.days;
+    garden = { days: from + 1, last: today() };
+    keepGarden(); pushFavs(); showButton();
+    say(garden.days === 1 ? 'Watered. The lilies will grow a little every day you water them.'
+      : 'Watered. Day ' + garden.days + ' in the garden.');
+    if (calm.matches) return drawFront(garden.days);
+    raining = true;
+    const t0 = performance.now();
+    (function frame(now) {
+      const t = (now - t0) / 1000;
+      if (t < 1.9) for (let k = 0; k < 5; k++) drops.push({ x: Math.random() * FW, y: FH * .5, v: 7 + Math.random() * 6, len: 9 + Math.random() * 9 });
+      drops.forEach(d => { d.y += d.v; });
+      drops = drops.filter(d => d.y < FH + 20);
+      const g = clamp((t - .7) / 2.4, 0, 1), eased = g * g * (3 - 2 * g);
+      drawFront(from + eased);
+      if (t < 3.3 || drops.length) requestAnimationFrame(frame);
+      else { raining = false; drawFront(garden.days); }
+    })(t0);
+  });
+  gardenChanged = () => { if (!raining) drawFront(garden.days); showButton(); };
+
+  let resizeTimer;
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(paint, 200); });
+  let moving = false;
+  window.addEventListener('pointermove', e => {         // the layers drift apart as the pointer moves: depth
+    if (moving || calm.matches || e.pointerType === 'touch') return;
+    moving = true;
+    requestAnimationFrame(() => {
+      desk.style.setProperty('--mx', (.5 - e.clientX / window.innerWidth).toFixed(3));
+      desk.style.setProperty('--my', (.5 - e.clientY / window.innerHeight).toFixed(3));
+      moving = false;
+    });
+  });
+  paint(); showButton();
 })();
 
 showFavs();
