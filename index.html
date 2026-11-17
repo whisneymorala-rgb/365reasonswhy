@@ -1399,8 +1399,8 @@ book.addEventListener('touchend', e => {
       for (let k = 0; k < 4 + Math.floor(rnd() * 4); k++) {
         const fx = cx + (rnd() - .5) * r * 2.4, fy = cy + (rnd() - .6) * r * 1.2;
         x.strokeStyle = '#3c5a2a'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(fx, fy); x.lineTo(fx + (rnd() - .5) * 8, fy + r * .7); x.stroke();
-        const rose = IMG['rose-' + (b < .3 ? 'red' : 'pink') + '-' + (1 + Math.floor(rnd() * 3))], size = (7 + depth * 9 + rnd() * 4) * u;
-        if (rose && b < .6) stand(x, rose, fx, fy + size * 1.5, size * 3, (rnd() - .5) * .7, 1);
+        const pick = rnd(), rose = IMG['rose-' + (b < .42 ? 'red' : 'pink') + '-' + (pick < .62 ? 3 : pick < .82 ? 1 : 2)], size = (8 + depth * 10 + rnd() * 4) * u;
+        if (rose && b < .6) stand(x, rose, fx, fy + size * 1.6, size * 3.3, (rnd() - .5) * .5, 1);
         else flower(x, fx, fy, size, kind, col, rnd);
       }
     });
