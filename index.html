@@ -1465,19 +1465,16 @@ book.addEventListener('touchend', e => {
     clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('on'), 4200);
   }
   function showButton() {
-    const done = garden.last === today();
-    waterBtn.classList.toggle('done', done);
-    waterBtn.dataset.tip = done ? 'Watered today. Come back tomorrow.' : 'Water the garden';
+    waterBtn.dataset.tip = 'Water the garden';
   }
   let raining = false;
   waterBtn.addEventListener('click', () => {
     if (raining) return;
-    if (garden.last === today()) return say('The garden has had its water today. Come back tomorrow.');
     const from = garden.days;
     garden = { days: from + 1, last: today() };
     keepGarden(); pushFavs(); showButton();
-    say(garden.days === 1 ? 'Watered. The lilies and roses grow bigger every day you water them.'
-      : 'Watered. Day ' + garden.days + ' in the garden.');
+    say(garden.days === 1 ? 'Watered. The lilies and roses grow bigger every time you water them.'
+      : 'Watered ' + garden.days + ' times.');
     if (calm.matches) return drawFront(garden.days);
     raining = true;
     const t0 = performance.now();
