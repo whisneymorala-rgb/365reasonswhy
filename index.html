@@ -1415,9 +1415,9 @@ book.addEventListener('touchend', e => {
     // white lilies and red roses scattered together across the whole garden, always in bloom
     if (IMG['lily-1'] && IMG['rose-1']) {
       const r2 = seeded(909), bank = [];
-      for (let i = 0; i < 150; i++) bank.push([W * (.01 + r2() * .98), H * (.47 + r2() * .46), r2(), r2()]);
+      for (let i = 0; i < 300; i++) bank.push([W * (.01 + r2() * .98), H * (.4 + r2() * .54), r2(), r2()]);
       bank.sort((a, b) => a[1] - b[1]).forEach(([lx, ly, t, kind]) => {
-        const depth = (ly / H - .47) / .46, lean = (t - .5) * .4;
+        const depth = clamp((ly / H - .4) / .54, 0, 1), lean = (t - .5) * .4;
         if (kind < .5) sprig(x, 'rose', IMG['rose-' + (1 + Math.floor(kind * 6))], lx, ly, (20 + depth * 24 + t * 8) * u, lean);
         else sprig(x, 'lily', IMG['lily-' + (kind < .75 ? 1 : 2)], lx, ly, (24 + depth * 28 + t * 9) * u, lean);
       });
@@ -1434,7 +1434,7 @@ book.addEventListener('touchend', e => {
   }
   function drawFront(days) {
     fx.clearRect(0, 0, FW, FH);
-    const rnd = seeded(365), tall = clamp(FH * .24, 110, 210), count = FW < 600 ? 7 : 13;
+    const rnd = seeded(365), tall = clamp(FH * .24, 110, 210), count = FW < 600 ? 9 : 17;
     fx.lineCap = 'round';
     grass(rnd, Math.round(FW / 6), tall * .45, ['#2c4a1e', '#36582a', '#24401a']);
     const extra = clamp(days - 4, 0, 90);               // after full bloom, each day adds another lily
